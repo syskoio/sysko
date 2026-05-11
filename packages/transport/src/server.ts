@@ -67,6 +67,34 @@ function checkWsAuth(req: IncomingMessage, password: string): boolean {
   return pw !== null && Buffer.from(pw, "base64").toString("utf8") === password;
 }
 
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_MS = 5 * 60 * 1000; // 5 minutes
+
+interface LoginEntry { count: number; lockedUntil: number }
+const loginAttempts = new Map<string, LoginEntry>();
+
+function clientIp(req: IncomingMessage): string {
+  const fwd = req.headers["x-forwarded-for"];
+  if (typeof fwd === "string") return fwd.split(",")[0]?.trim() ?? "unknown";
+  return req.socket.remoteAddress ?? "unknown";
+}
+
+function isRateLimited(ip: string): boolean {
+  const entry = loginAttempts.get(ip);
+  if (!entry) return false;
+  if (entry.lockedUntil > Date.now()) return true;
+  // Lockout expired — reset.
+  loginAttempts.delete(ip);
+  return false;
+}
+
+function recordFailure(ip: string): void {
+  const entry = loginAttempts.get(ip) ?? { count: 0, lockedUntil: 0 };
+  entry.count++;
+  if (entry.count >= MAX_LOGIN_ATTEMPTS) entry.lockedUntil = Date.now() + LOCKOUT_MS;
+  loginAttempts.set(ip, entry);
+}
+
 function rejectUnauthorized(res: ServerResponse): void {
   res.writeHead(401, { "content-type": "application/json" });
   res.end(JSON.stringify({ error: "unauthorized" }));
@@ -78,6 +106,13 @@ function handleMeta(res: ServerResponse, passwordRequired: boolean): void {
 }
 
 function handleAuthCheck(req: IncomingMessage, res: ServerResponse, password: string): void {
+  const ip = clientIp(req);
+  if (isRateLimited(ip)) {
+    res.writeHead(429, { "content-type": "application/json" });
+    res.end(JSON.stringify({ error: "too many attempts, try again later" }));
+    return;
+  }
+
   req.setEncoding("utf8");
   const chunks: string[] = [];
   req.on("data", (chunk: string) => chunks.push(chunk));
@@ -85,9 +120,11 @@ function handleAuthCheck(req: IncomingMessage, res: ServerResponse, password: st
     try {
       const body = JSON.parse(chunks.join("")) as { password?: unknown };
       if (body.password === password) {
+        loginAttempts.delete(ip);
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify({ ok: true }));
       } else {
+        recordFailure(ip);
         res.writeHead(401, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "invalid password" }));
       }

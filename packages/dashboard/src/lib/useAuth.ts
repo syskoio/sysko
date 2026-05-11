@@ -46,7 +46,11 @@ export function useAuth(): UseAuthResult {
         setPassword(pw);
         return true;
       }
-      setError("Wrong password.");
+      if (res.status === 429) {
+        setError("Too many attempts. Try again in 5 minutes.");
+      } else {
+        setError("Wrong password.");
+      }
       return false;
     } catch {
       setError("Could not reach the dashboard server.");

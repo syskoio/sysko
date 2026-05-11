@@ -48,6 +48,23 @@ export function defineRoutes(app: Express, sysko: Sysko): void {
     throw new Error("intentional handler failure");
   });
 
+  app.get("/bad-request", (req, res) => {
+    const email = req.query["email"];
+    if (!email || typeof email !== "string" || !email.includes("@")) {
+      res.status(400).json({ error: "validation failed", field: "email", message: "must be a valid email address" });
+      return;
+    }
+    res.json({ ok: true });
+  });
+
+  app.get("/not-found", (_req, res) => {
+    res.status(404).json({ error: "user not found", id: 99 });
+  });
+
+  app.get("/server-error", (_req, res) => {
+    res.status(500).json({ error: "database connection failed", code: "ECONNREFUSED" });
+  });
+
   app.get("/logs", async (_req, res) => {
     console.log("request received");
     console.info("fetching user from db");

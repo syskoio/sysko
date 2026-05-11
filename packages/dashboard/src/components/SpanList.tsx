@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { AlertTriangle, GitBranch } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, GitBranch } from "lucide-react";
 import type { Span } from "../lib/types";
 import { fmtDuration, fmtRelativeTime } from "../lib/format";
 import { durationBar, methodPill, statusColor } from "../lib/colors";
@@ -11,9 +11,13 @@ export interface SpanListProps {
   selectedId: string | undefined;
   onSelect: (id: string) => void;
   isNew: (id: string) => boolean;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  onPageChange: (page: number) => void;
 }
 
-export function SpanList({ rootSpans, allSpans, selectedId, onSelect, isNew }: SpanListProps): React.ReactElement {
+export function SpanList({ rootSpans, allSpans, selectedId, onSelect, isNew, page, pageSize, totalCount, onPageChange }: SpanListProps): React.ReactElement {
   const childCounts = useMemo(() => {
     const map = new Map<string, number>();
     for (const s of allSpans) {
@@ -28,8 +32,13 @@ export function SpanList({ rootSpans, allSpans, selectedId, onSelect, isNew }: S
     return Math.max(...rootSpans.map((s) => s.duration));
   }, [rootSpans]);
 
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const from = totalCount === 0 ? 0 : page * pageSize + 1;
+  const to = Math.min(totalCount, (page + 1) * pageSize);
+
   return (
-    <div className="overflow-auto h-full">
+    <div className="flex flex-col h-full">
+    <div className="overflow-auto flex-1">
       <table className="w-full text-[13px]">
         <thead className="sticky top-0 bg-zinc-950 z-10">
           <tr className="text-left text-[10.5px] uppercase tracking-wider text-zinc-500 border-b border-zinc-900">
@@ -116,6 +125,36 @@ export function SpanList({ rootSpans, allSpans, selectedId, onSelect, isNew }: S
           })}
         </tbody>
       </table>
+    </div>
+
+    {totalCount > pageSize && (
+      <div className="flex items-center justify-between px-5 py-2 border-t border-zinc-900 shrink-0">
+        <span className="text-[11px] text-zinc-500 tabular-nums">
+          {from}–{to} of {totalCount}
+        </span>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 0}
+            className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronLeft className="h-3 w-3" />
+            Prev
+          </button>
+          <span className="text-[11px] text-zinc-600 px-1 tabular-nums">
+            {page + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages - 1}
+            className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            Next
+            <ChevronRight className="h-3 w-3" />
+          </button>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

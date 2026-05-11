@@ -18,6 +18,8 @@ import { useFilters } from "./lib/useFilters";
 import { useKeyboard } from "./lib/useKeyboard";
 import { useHashRoute } from "./lib/useHashRoute";
 
+const PAGE_SIZE = 50;
+
 export function App(): React.ReactElement {
   const { spans, rootSpans, metrics, alerts, state, isNew, clear, paused, togglePause, getTrace } = useSpans();
   const filters = useFilters();
@@ -25,11 +27,21 @@ export function App(): React.ReactElement {
   const [compareId, setCompareId] = useState<string | undefined>(undefined);
   const [pickingCompare, setPickingCompare] = useState(false);
   const [tab, setTab] = useState<TabKey>("spans");
+  const [page, setPage] = useState(0);
   const searchRef = useRef<HTMLInputElement>(null);
   const { route, setRoute } = useHashRoute();
   const hydrated = useRef(false);
 
   const filteredRoots = useMemo(() => filters.apply(rootSpans), [filters, rootSpans]);
+
+  // Reset to first page whenever the active filter changes (not on new spans arriving).
+  const { apply: applyFn } = filters;
+  useEffect(() => { setPage(0); }, [applyFn]);
+
+  const paginatedRoots = useMemo(
+    () => filteredRoots.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE),
+    [filteredRoots, page],
+  );
 
   const selected = spans.find((s) => s.id === selectedId);
   const compare = spans.find((s) => s.id === compareId);
@@ -78,15 +90,23 @@ export function App(): React.ReactElement {
   const onNext = useCallback(() => {
     if (filteredRoots.length === 0) return;
     const idx = filteredRoots.findIndex((s) => s.id === selectedId);
-    const next = filteredRoots[Math.min(filteredRoots.length - 1, idx + 1)] ?? filteredRoots[0];
-    if (next) setSelectedId(next.id);
+    const nextIdx = Math.min(filteredRoots.length - 1, idx + 1);
+    const next = filteredRoots[nextIdx] ?? filteredRoots[0];
+    if (next) {
+      setSelectedId(next.id);
+      setPage(Math.floor(nextIdx / PAGE_SIZE));
+    }
   }, [filteredRoots, selectedId]);
 
   const onPrev = useCallback(() => {
     if (filteredRoots.length === 0) return;
     const idx = filteredRoots.findIndex((s) => s.id === selectedId);
-    const prev = filteredRoots[Math.max(0, idx - 1)] ?? filteredRoots[filteredRoots.length - 1];
-    if (prev) setSelectedId(prev.id);
+    const prevIdx = Math.max(0, idx - 1);
+    const prev = filteredRoots[prevIdx] ?? filteredRoots[filteredRoots.length - 1];
+    if (prev) {
+      setSelectedId(prev.id);
+      setPage(Math.floor(prevIdx / PAGE_SIZE));
+    }
   }, [filteredRoots, selectedId]);
 
   const onClear = useCallback(() => {
@@ -176,11 +196,15 @@ export function App(): React.ReactElement {
             <EmptyState />
           ) : (
             <SpanList
-              rootSpans={filteredRoots}
+              rootSpans={paginatedRoots}
               allSpans={spans}
               selectedId={selectedId}
               onSelect={onSelectRow}
               isNew={isNew}
+              page={page}
+              pageSize={PAGE_SIZE}
+              totalCount={filteredRoots.length}
+              onPageChange={setPage}
             />
           )}
         </div>

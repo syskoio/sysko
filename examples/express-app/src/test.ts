@@ -31,6 +31,9 @@ const CASES: RouteCase[] = [
   { method: "GET", path: "/fanout" },
   { method: "GET", path: "/work" },
   { method: "GET", path: "/throw", willAbort: true },
+  { method: "GET", path: "/bad-request" },
+  { method: "GET", path: "/not-found" },
+  { method: "GET", path: "/server-error" },
   { method: "GET", path: "/logs" },
   { method: "GET", path: "/healthz", redacted: true },
   { method: "GET", path: "/internal/secret", redacted: true },
@@ -50,6 +53,11 @@ interface SpanLog {
   message: string;
 }
 
+interface SpanError {
+  message: string;
+  name?: string;
+}
+
 interface Span {
   id: string;
   traceId: string;
@@ -59,6 +67,7 @@ interface Span {
   status: "ok" | "error";
   attributes: Record<string, unknown>;
   logs?: SpanLog[];
+  error?: SpanError;
 }
 
 function colorStatus(status: number | string): string {
@@ -248,6 +257,31 @@ async function main(): Promise<void> {
     );
   } else {
     console.log(`\r  ${YELLOW}no alert received${RESET}  (server may not have alerts configured)\n`);
+  }
+
+  // --- error body verification ---
+  console.log(`\n${BOLD}error body capture${RESET}`);
+  try {
+    await new Promise((r) => setTimeout(r, 200));
+    const allSpans2 = await fetchHistory();
+    const errorSpans = allSpans2.filter(
+      (s) => s.startTime >= startMark - 50 && s.status === "error" && s.error !== undefined && !s.parentSpanId,
+    );
+    if (errorSpans.length === 0) {
+      console.log(`  ${DIM}no error spans found — run again after starting the server${RESET}`);
+    } else {
+      const pathWidth = Math.max(...errorSpans.map((s) => String(s.attributes["http.path"] ?? "?").length));
+      console.log(`  ${DIM}${"path".padEnd(pathWidth)}   name                   message${RESET}`);
+      for (const s of errorSpans) {
+        const path = String(s.attributes["http.path"] ?? "?").padEnd(pathWidth);
+        const name = (s.error?.name ?? "—").padEnd(22).slice(0, 22);
+        const msg = s.error?.message ?? "—";
+        const msgShort = msg.length > 60 ? msg.slice(0, 57) + "..." : msg;
+        console.log(`  ${path}   ${YELLOW}${name}${RESET}  ${DIM}${msgShort}${RESET}`);
+      }
+    }
+  } catch {
+    console.log(`  ${DIM}(skipped — dashboard not reachable on :9999)${RESET}`);
   }
 
   process.exit(0);

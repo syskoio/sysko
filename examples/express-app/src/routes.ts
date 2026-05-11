@@ -429,6 +429,35 @@ export function defineRoutes(app: Express, sysko: Sysko): void {
     res.json({ count });
   });
 
+  // ─── W3C traceparent / distributed tracing demo ──────────────────────────────
+
+  // Echoes back the traceparent header this request received (if any).
+  // Used by /traceparent/self-call to confirm the header was injected.
+  app.get("/traceparent/echo", (req, res) => {
+    res.json({
+      traceparent: req.headers["traceparent"] ?? null,
+      traceId: req.headers["traceparent"]
+        ? String(req.headers["traceparent"]).split("-")[1] ?? null
+        : null,
+    });
+  });
+
+  // Makes an outbound fetch to /traceparent/echo on the same server.
+  // This creates three spans that share the same traceId:
+  //   1. http.server  GET /traceparent/self-call  (root, traceId = T)
+  //   2. http.client  GET localhost/traceparent/echo  (child, traceId = T, injects traceparent)
+  //   3. http.server  GET /traceparent/echo  (continues trace, traceId = T)
+  app.get("/traceparent/self-call", async (req, res) => {
+    const port = (req.socket.localPort ?? 3000).toString();
+    const response = await fetch(`http://localhost:${port}/traceparent/echo`);
+    const data = await response.json() as { traceparent: string | null; traceId: string | null };
+    res.json({
+      propagated: data.traceparent !== null,
+      receivedTraceparent: data.traceparent,
+      sharedTraceId: data.traceId,
+    });
+  });
+
   // ─── Error fingerprinting demo ────────────────────────────────────────────────
   // Each route below creates a child span via withSpan that ends up with
   // status: error. The errors tab groups them by (error.name, top stack frame).

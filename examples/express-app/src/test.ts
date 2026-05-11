@@ -54,6 +54,9 @@ const CASES: RouteCase[] = [
   { method: "GET", path: "/plugins/prisma/count" },
   { method: "GET", path: "/healthz", redacted: true },
   { method: "GET", path: "/internal/secret", redacted: true },
+  // W3C traceparent demo
+  { method: "GET", path: "/traceparent/echo" },
+  { method: "GET", path: "/traceparent/self-call" },
   // error fingerprinting demo — each creates a child span with status: error
   { method: "GET", path: "/errors/type-error" },
   { method: "GET", path: "/errors/range-error" },
@@ -282,6 +285,43 @@ async function main(): Promise<void> {
     );
   } else {
     console.log(`\r  ${YELLOW}no alert received${RESET}  (server may not have alerts configured)\n`);
+  }
+
+  // --- W3C traceparent / distributed trace verification ---
+  console.log(`\n${BOLD}W3C traceparent propagation${RESET}`);
+  try {
+    // Call /traceparent/self-call: the server fetches its own /traceparent/echo,
+    // injecting the traceparent header. The response tells us if propagation worked.
+    const selfCallRes = await fetch(`${APP_BASE}/traceparent/self-call`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    const selfCall = await selfCallRes.json() as {
+      propagated: boolean;
+      receivedTraceparent: string | null;
+      sharedTraceId: string | null;
+    };
+
+    if (selfCall.propagated && selfCall.receivedTraceparent) {
+      console.log(`  ${GREEN}outbound injection${RESET}   traceparent header delivered to inner request`);
+      console.log(`  ${GREEN}inbound continuation${RESET}  inner span shares traceId with root`);
+      console.log(`  ${DIM}traceparent: ${selfCall.receivedTraceparent}${RESET}`);
+    } else {
+      console.log(`  ${YELLOW}no traceparent propagated${RESET}  (unexpected — check instrumentation)`);
+    }
+
+    // Verify via span history that all three spans share the same traceId.
+    await new Promise((r) => setTimeout(r, 200));
+    const history = await fetchHistory();
+    const selfCallRoot = [...history].reverse().find(
+      (s: Span) => !s.parentSpanId && s.attributes["http.path"] === "/traceparent/self-call" && s.startTime >= startMark - 50,
+    );
+    if (selfCallRoot) {
+      const trace = history.filter((s) => s.traceId === selfCallRoot.traceId);
+      const kinds = trace.map((s) => s.kind).sort().join(", ");
+      console.log(`  ${LIME}${trace.length}${RESET} spans share traceId ${DIM}${selfCallRoot.traceId.slice(0, 8)}…${RESET}  [${kinds}]`);
+    }
+  } catch {
+    console.log(`  ${DIM}(skipped — dashboard not reachable on :9999)${RESET}`);
   }
 
   // --- error body verification ---

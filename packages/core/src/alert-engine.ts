@@ -24,7 +24,7 @@ export interface AlertFired {
 type AlertListener = (alert: AlertFired) => void;
 
 const MAX_HISTORY = 200;
-const CHECK_INTERVAL_MS = 30_000;
+const DEFAULT_CHECK_INTERVAL_MS = 30_000;
 
 function percentile(sorted: number[], p: number): number {
   if (sorted.length === 0) return 0;
@@ -54,20 +54,22 @@ function fmtValue(type: AlertRule["type"], value: number): string {
 export class AlertEngine {
   private readonly rules: AlertRule[];
   private readonly store: SpanStore;
+  private readonly checkIntervalMs: number;
   private readonly history: AlertFired[] = [];
   private readonly listeners = new Set<AlertListener>();
   private readonly lastFired = new Map<string, number>();
   private timer: ReturnType<typeof setInterval> | undefined;
 
-  constructor(rules: AlertRule[], store: SpanStore) {
+  constructor(rules: AlertRule[], store: SpanStore, checkIntervalMs = DEFAULT_CHECK_INTERVAL_MS) {
     this.rules = rules;
     this.store = store;
+    this.checkIntervalMs = checkIntervalMs;
   }
 
   start(): void {
     this.timer = setInterval(() => {
       this.check().catch(() => {});
-    }, CHECK_INTERVAL_MS);
+    }, this.checkIntervalMs);
   }
 
   stop(): void {

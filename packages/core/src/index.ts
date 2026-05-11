@@ -63,6 +63,8 @@ export interface SyskoOptions {
   /** Max spans stored per second. Excess spans are dropped. */
   rateLimit?: number;
   alerts?: AlertRule[];
+  /** How often (ms) to evaluate alert rules. Default 30000. */
+  alertCheckInterval?: number;
 }
 
 export interface Sysko {
@@ -136,7 +138,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
   metricsCollector.start();
 
   const alertEngine = options.alerts && options.alerts.length > 0
-    ? new AlertEngine(options.alerts, store)
+    ? new AlertEngine(options.alerts, store, options.alertCheckInterval)
     : undefined;
   alertEngine?.start();
 

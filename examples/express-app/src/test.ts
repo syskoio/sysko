@@ -36,6 +36,14 @@ const CASES: RouteCase[] = [
   { method: "GET", path: "/internal/secret", redacted: true },
 ];
 
+interface AlertFired {
+  ts: number;
+  ruleName: string;
+  type: "p95" | "errorRate" | "spanCount";
+  value: number;
+  threshold: number;
+}
+
 interface SpanLog {
   ts: number;
   level: string;
@@ -71,6 +79,38 @@ async function ensureServerUp(): Promise<void> {
     console.error(`         ${LIME}pnpm --filter example-express-app start${RESET}\n`);
     process.exit(1);
   }
+}
+
+async function waitForAlert(timeoutMs: number): Promise<AlertFired | null> {
+  return new Promise((resolve) => {
+    let ws: WebSocket;
+    const timer = setTimeout(() => {
+      ws.close();
+      resolve(null);
+    }, timeoutMs);
+
+    ws = new WebSocket(DASHBOARD_WS);
+    ws.addEventListener("message", (ev) => {
+      const msg = JSON.parse(ev.data as string) as {
+        type: string;
+        alert?: AlertFired;
+        alerts?: AlertFired[];
+      };
+      if (msg.type === "alert" && msg.alert) {
+        clearTimeout(timer);
+        ws.close();
+        resolve(msg.alert);
+      } else if (msg.type === "alerts-history" && msg.alerts && msg.alerts.length > 0) {
+        clearTimeout(timer);
+        ws.close();
+        resolve(msg.alerts[msg.alerts.length - 1] ?? null);
+      }
+    });
+    ws.addEventListener("error", () => {
+      clearTimeout(timer);
+      resolve(null);
+    });
+  });
 }
 
 async function fetchHistory(): Promise<Span[]> {
@@ -181,6 +221,33 @@ async function main(): Promise<void> {
     console.log(
       `${DIM}(skipped span summary — dashboard not reachable on :9999)${RESET}\n`,
     );
+  }
+
+  // --- alert verification ---
+  // Fire enough errors to breach the 30% errorRate threshold, then
+  // wait up to 8s for the engine to pick it up (check interval = 3s).
+  console.log(`${BOLD}alert verification${RESET}`);
+  console.log(`${DIM}firing 8 × /error to breach the errorRate threshold...${RESET}`);
+
+  for (let i = 0; i < 8; i++) {
+    await fetch(`${APP_BASE}/error`, { signal: AbortSignal.timeout(2000) }).catch(() => {});
+  }
+
+  process.stdout.write(`${DIM}waiting up to 8s for alert engine...${RESET}`);
+  const fired = await waitForAlert(8000).catch(() => null);
+
+  if (fired) {
+    const value = fired.type === "errorRate"
+      ? `${(fired.value * 100).toFixed(1)}%`
+      : String(fired.value);
+    const threshold = fired.type === "errorRate"
+      ? `${(fired.threshold * 100).toFixed(1)}%`
+      : String(fired.threshold);
+    console.log(
+      `\r  ${GREEN}alert fired${RESET}   rule="${fired.ruleName}"  ${fired.type}=${LIME}${value}${RESET} > threshold ${threshold}`,
+    );
+  } else {
+    console.log(`\r  ${YELLOW}no alert received${RESET}  (server may not have alerts configured)\n`);
   }
 
   process.exit(0);

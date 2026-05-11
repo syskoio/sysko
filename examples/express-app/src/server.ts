@@ -9,6 +9,17 @@ const sysko = await init({
     queryParams: ["token", "apiKey"],
     paths: ["/healthz", "/internal/*"],
   },
+  alerts: [
+    {
+      name: "high error rate",
+      type: "errorRate",
+      threshold: 0.3,   // fires when > 30% of http.server spans are errors
+      window: 15,        // look at the last 15 seconds
+      cooldown: 0,       // re-fire every check in demo mode
+      webhook: process.env["SYSKO_WEBHOOK_URL"] ?? "http://localhost:9998/noop",
+    },
+  ],
+  alertCheckInterval: 3_000, // check every 3s so tests don't wait 30s
 });
 
 sysko.onSpan((span) => {

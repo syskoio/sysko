@@ -31,9 +31,16 @@ const CASES: RouteCase[] = [
   { method: "GET", path: "/fanout" },
   { method: "GET", path: "/work" },
   { method: "GET", path: "/throw", willAbort: true },
+  { method: "GET", path: "/logs" },
   { method: "GET", path: "/healthz", redacted: true },
   { method: "GET", path: "/internal/secret", redacted: true },
 ];
+
+interface SpanLog {
+  ts: number;
+  level: string;
+  message: string;
+}
 
 interface Span {
   id: string;
@@ -43,6 +50,7 @@ interface Span {
   startTime: number;
   status: "ok" | "error";
   attributes: Record<string, unknown>;
+  logs?: SpanLog[];
 }
 
 function colorStatus(status: number | string): string {
@@ -156,6 +164,8 @@ async function main(): Promise<void> {
     const traces = new Set(fromRun.map((s) => s.traceId));
     const children = fromRun.filter((s) => s.parentSpanId !== undefined).length;
     const errored = fromRun.filter((s) => s.status === "error").length;
+    const withLogs = fromRun.filter((s) => (s.logs?.length ?? 0) > 0);
+    const totalLogs = withLogs.reduce((acc, s) => acc + (s.logs?.length ?? 0), 0);
 
     console.log(`${BOLD}captured by sysko (this run)${RESET}`);
     console.log(
@@ -163,6 +173,7 @@ async function main(): Promise<void> {
     );
     console.log(`  ${children} child spans (outbound HTTP / withSpan)`);
     console.log(`  ${errored} errored`);
+    console.log(`  ${totalLogs} logs attached across ${withLogs.length} spans`);
     console.log(
       `  ${CASES.filter((c) => c.redacted).length} requests dropped by redact rules\n`,
     );

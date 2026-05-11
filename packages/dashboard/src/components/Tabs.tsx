@@ -1,15 +1,16 @@
-import { ListTree, BarChart3, BarChartHorizontal, Cpu, Bell } from "lucide-react";
+import { ListTree, BarChart3, BarChartHorizontal, Cpu, Bell, AlertTriangle } from "lucide-react";
 
-export type TabKey = "spans" | "endpoints" | "distribution" | "system" | "alerts";
+export type TabKey = "spans" | "endpoints" | "distribution" | "system" | "alerts" | "errors";
 
 export interface TabsProps {
   value: TabKey;
   onChange: (k: TabKey) => void;
   endpointsCount: number;
   alertsCount: number;
+  errorsCount: number;
 }
 
-export function Tabs({ value, onChange, endpointsCount, alertsCount }: TabsProps): React.ReactElement {
+export function Tabs({ value, onChange, endpointsCount, alertsCount, errorsCount }: TabsProps): React.ReactElement {
   return (
     <div className="border-b border-zinc-900 px-5 flex items-center gap-1 bg-zinc-950">
       <Tab active={value === "spans"} onClick={() => onChange("spans")}>
@@ -39,6 +40,15 @@ export function Tabs({ value, onChange, endpointsCount, alertsCount }: TabsProps
         {alertsCount > 0 && (
           <span className="ml-1 text-[10px] font-mono tabular-nums bg-red-500/20 text-red-400 px-1 rounded">
             {alertsCount}
+          </span>
+        )}
+      </Tab>
+      <Tab active={value === "errors"} onClick={() => onChange("errors")}>
+        <AlertTriangle className="h-3.5 w-3.5" />
+        errors
+        {errorsCount > 0 && (
+          <span className="ml-1 text-[10px] font-mono tabular-nums bg-orange-500/20 text-orange-400 px-1 rounded">
+            {errorsCount}
           </span>
         )}
       </Tab>

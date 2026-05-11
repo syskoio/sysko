@@ -13,7 +13,9 @@ import { ShortcutsHint } from "./components/ShortcutsHint";
 import { CompareBanner } from "./components/CompareBanner";
 import { SystemTab } from "./components/SystemTab";
 import { AlertsTab } from "./components/AlertsTab";
+import { ErrorsTab } from "./components/ErrorsTab";
 import { useSpans } from "./lib/useSpans";
+import { useErrors } from "./lib/useErrors";
 import { useFilters } from "./lib/useFilters";
 import { useKeyboard } from "./lib/useKeyboard";
 import { useHashRoute } from "./lib/useHashRoute";
@@ -33,6 +35,7 @@ export function App(): React.ReactElement {
   const hydrated = useRef(false);
 
   const filteredRoots = useMemo(() => filters.apply(rootSpans), [filters, rootSpans]);
+  const errorGroups = useErrors(spans);
 
   // Reset to first page whenever the active filter changes (not on new spans arriving).
   const { apply: applyFn } = filters;
@@ -116,6 +119,17 @@ export function App(): React.ReactElement {
     setPickingCompare(false);
   }, [clear]);
 
+  const onSelectTrace = useCallback(
+    (traceId: string) => {
+      const root = rootSpans.find((s) => s.traceId === traceId);
+      if (root) {
+        setSelectedId(root.id);
+        setTab("spans");
+      }
+    },
+    [rootSpans],
+  );
+
   const onEscape = useCallback(() => {
     if (pickingCompare) {
       setPickingCompare(false);
@@ -167,7 +181,7 @@ export function App(): React.ReactElement {
         alertCount={alerts.length}
       />
       <Stats spans={spans} />
-      <Tabs value={tab} onChange={setTab} endpointsCount={endpointsCount} alertsCount={alerts.length} />
+      <Tabs value={tab} onChange={setTab} endpointsCount={endpointsCount} alertsCount={alerts.length} errorsCount={errorGroups.length} />
 
       {tab === "spans" && (
         <FilterBar
@@ -184,7 +198,9 @@ export function App(): React.ReactElement {
 
       <main className="flex-1 min-h-0 grid" style={{ gridTemplateColumns: detailCols }}>
         <div className="min-h-0 overflow-hidden">
-          {tab === "alerts" ? (
+          {tab === "errors" ? (
+            <ErrorsTab spans={spans} onSelectTrace={onSelectTrace} />
+          ) : tab === "alerts" ? (
             <AlertsTab alerts={alerts} />
           ) : tab === "system" ? (
             <SystemTab samples={metrics} />

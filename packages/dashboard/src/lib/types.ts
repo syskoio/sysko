@@ -4,6 +4,12 @@ export interface SpanError {
   name?: string;
 }
 
+export interface SpanLog {
+  ts: number;
+  level: "log" | "info" | "warn" | "error";
+  message: string;
+}
+
 export interface Span {
   id: string;
   traceId: string;
@@ -14,6 +20,7 @@ export interface Span {
   duration: number;
   status: "ok" | "error";
   error?: SpanError;
+  logs?: SpanLog[];
   attributes: {
     "http.method"?: string;
     "http.path"?: string;

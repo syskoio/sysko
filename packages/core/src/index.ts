@@ -6,10 +6,12 @@ import { dashboardAssetsPath } from "@sysko/dashboard";
 import { activateHttpInstrumentation } from "./instrument-http.js";
 import { activateOutboundInstrumentation } from "./instrument-outbound.js";
 import { activateErrorInstrumentation } from "./instrument-errors.js";
-import { setActiveStore, setSamplingRate, setRateLimit } from "./span-factory.js";
+import { setActiveStore, setSamplingRate, setRateLimit, getActiveHandle } from "./span-factory.js";
+import { spanContext } from "./context.js";
 import { addSpanHook, clearSpanHooks, type SpanHook } from "./hooks.js";
 import { buildRedactHook, type RedactOptions } from "./redact.js";
 import { MetricsCollector, type MetricSample } from "./metrics.js";
+import { activateConsoleInstrumentation } from "./instrument-console.js";
 
 export type {
   Span,
@@ -19,6 +21,8 @@ export type {
   SpanKind,
   SpanStatus,
   SpanError,
+  SpanLog,
+  SpanLogLevel,
   RetentionOptions,
 } from "@sysko/storage";
 export type { MetricSample } from "./metrics.js";
@@ -64,6 +68,7 @@ export interface Sysko {
   readonly transport: Transport | undefined;
   readonly dashboardUrl: string | undefined;
   onSpan(hook: SpanHook): () => void;
+  log(level: "log" | "info" | "warn" | "error", message: string): void;
   shutdown(): Promise<void>;
 }
 
@@ -105,6 +110,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
 
   const deactivateInbound = activateHttpInstrumentation(store);
   const deactivateErrors = activateErrorInstrumentation(store);
+  const deactivateConsole = activateConsoleInstrumentation();
 
   const dashOpts = options.dashboard !== false ? (options.dashboard ?? {}) : undefined;
   const port = dashOpts?.port ?? DEFAULT_PORT;
@@ -150,12 +156,19 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
     onSpan(hook) {
       return addSpanHook(hook);
     },
+    log(level, message) {
+      const ctx = spanContext.getStore();
+      if (!ctx?.sampled || !ctx.spanId) return;
+      const handle = getActiveHandle(ctx.spanId);
+      handle?.addLog(level, message);
+    },
     async shutdown() {
       process.off("SIGTERM", handleSignal);
       process.off("SIGINT", handleSignal);
       deactivateInbound();
       deactivateOutbound();
       deactivateErrors();
+      deactivateConsole();
       clearSpanHooks();
       setActiveStore(null);
       setSamplingRate(1);

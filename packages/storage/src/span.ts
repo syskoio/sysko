@@ -2,6 +2,14 @@ export type SpanKind = "http.server" | "http.client" | "db.query" | "internal";
 
 export type SpanStatus = "ok" | "error";
 
+export type SpanLogLevel = "log" | "info" | "warn" | "error";
+
+export interface SpanLog {
+  ts: number;
+  level: SpanLogLevel;
+  message: string;
+}
+
 export interface SpanError {
   message: string;
   stack?: string;
@@ -31,4 +39,5 @@ export interface Span {
   status: SpanStatus;
   attributes: SpanAttributes;
   error?: SpanError;
+  logs?: SpanLog[];
 }

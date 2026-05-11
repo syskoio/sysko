@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { performance } from "node:perf_hooks";
-import type { Span, SpanAttributes, SpanError, SpanKind, SpanStore } from "@sysko/storage";
+import type { Span, SpanAttributes, SpanError, SpanKind, SpanLog, SpanLogLevel, SpanStore } from "@sysko/storage";
 import { spanContext, type SpanContext } from "./context.js";
 import { applyHooks } from "./hooks.js";
 
@@ -15,6 +15,7 @@ export interface SpanHandle {
   readonly traceId: string;
   setAttribute(key: string, value: string | number | boolean): void;
   setStatus(status: "ok" | "error", error?: unknown): void;
+  addLog(level: SpanLogLevel, message: string): void;
   end(): void;
 }
 
@@ -62,6 +63,7 @@ const NOOP_HANDLE: SpanHandle = {
   traceId: "",
   setAttribute() {},
   setStatus() {},
+  addLog() {},
   end() {},
 };
 
@@ -102,6 +104,7 @@ function createSpanHandle(opts: StartSpanOptions, parent: SpanContext | undefine
   const startTime = Date.now();
   const startPerf = performance.now();
   const attributes: SpanAttributes = { ...(opts.attributes ?? {}) };
+  const logs: SpanLog[] = [];
 
   let status: "ok" | "error" = "ok";
   let error: SpanError | undefined;
@@ -116,6 +119,9 @@ function createSpanHandle(opts: StartSpanOptions, parent: SpanContext | undefine
     setStatus(s, err) {
       status = s;
       if (s === "error" && err !== undefined) error = toError(err);
+    },
+    addLog(level, message) {
+      logs.push({ ts: Date.now(), level, message });
     },
     end() {
       if (ended) return;
@@ -135,6 +141,7 @@ function createSpanHandle(opts: StartSpanOptions, parent: SpanContext | undefine
           ? { parentSpanId: parent.spanId }
           : {}),
         ...(error !== undefined ? { error } : {}),
+        ...(logs.length > 0 ? { logs } : {}),
       };
       const transformed = applyHooks(span);
       if (transformed && activeStore && acquireRateToken()) {

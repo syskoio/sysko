@@ -31,8 +31,20 @@ export interface Span {
   };
 }
 
+export interface MetricSample {
+  ts: number;
+  eventLoopLag: number;
+  heapUsed: number;
+  heapTotal: number;
+  rss: number;
+  cpuPercent: number;
+  gcDuration: number;
+}
+
 export type WsMessage =
   | { type: "history"; spans: Span[] }
-  | { type: "span"; span: Span };
+  | { type: "span"; span: Span }
+  | { type: "metrics-history"; samples: MetricSample[] }
+  | { type: "metric"; sample: MetricSample };
 
 export type ConnState = "connecting" | "connected" | "disconnected";

@@ -1,6 +1,6 @@
-import { ListTree, BarChart3, BarChartHorizontal } from "lucide-react";
+import { ListTree, BarChart3, BarChartHorizontal, Cpu } from "lucide-react";
 
-export type TabKey = "spans" | "endpoints" | "distribution";
+export type TabKey = "spans" | "endpoints" | "distribution" | "system";
 
 export interface TabsProps {
   value: TabKey;
@@ -27,6 +27,10 @@ export function Tabs({ value, onChange, endpointsCount }: TabsProps): React.Reac
       <Tab active={value === "distribution"} onClick={() => onChange("distribution")}>
         <BarChartHorizontal className="h-3.5 w-3.5" />
         distribution
+      </Tab>
+      <Tab active={value === "system"} onClick={() => onChange("system")}>
+        <Cpu className="h-3.5 w-3.5" />
+        system
       </Tab>
     </div>
   );

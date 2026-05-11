@@ -9,6 +9,7 @@ import { activateErrorInstrumentation } from "./instrument-errors.js";
 import { setActiveStore, setSamplingRate, setRateLimit } from "./span-factory.js";
 import { addSpanHook, clearSpanHooks, type SpanHook } from "./hooks.js";
 import { buildRedactHook, type RedactOptions } from "./redact.js";
+import { MetricsCollector, type MetricSample } from "./metrics.js";
 
 export type {
   Span,
@@ -20,6 +21,7 @@ export type {
   SpanError,
   RetentionOptions,
 } from "@sysko/storage";
+export type { MetricSample } from "./metrics.js";
 export { getCurrentSpanId, getCurrentTraceId, getCurrentContext } from "./context.js";
 export {
   startSpan,
@@ -58,6 +60,7 @@ export interface SyskoOptions {
 
 export interface Sysko {
   readonly store: SpanStore;
+  readonly metrics: MetricsCollector;
   readonly transport: Transport | undefined;
   readonly dashboardUrl: string | undefined;
   onSpan(hook: SpanHook): () => void;
@@ -88,6 +91,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
   if (active) return active;
 
   const store = resolveStore(options);
+  const metricsCollector = new MetricsCollector();
   setActiveStore(store);
   setSamplingRate(options.sampling ?? 1);
 
@@ -120,11 +124,14 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
     );
   }
 
+  metricsCollector.start();
+
   let transport: Transport | undefined;
   let dashboardUrl: string | undefined;
   if (dashOpts) {
     transport = createTransport({
       store,
+      metrics: metricsCollector,
       staticDir: dashOpts.staticDir ?? dashboardAssetsPath,
       port,
       host,
@@ -137,6 +144,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
 
   const sysko: Sysko = {
     store,
+    metrics: metricsCollector,
     transport,
     dashboardUrl,
     onSpan(hook) {
@@ -152,6 +160,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
       setActiveStore(null);
       setSamplingRate(1);
       setRateLimit(0);
+      metricsCollector.stop();
       await transport?.stop();
       store.close?.();
       active = undefined;

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import type { ConnState, Span, WsMessage } from "./types";
+import type { ConnState, MetricSample, Span, WsMessage } from "./types";
+
+const MAX_METRICS = 720; // 1h at 5s interval
 
 export interface UseSpansResult {
   spans: Span[];
@@ -10,10 +12,12 @@ export interface UseSpansResult {
   paused: boolean;
   togglePause: () => void;
   getTrace: (traceId: string) => Span[];
+  metrics: MetricSample[];
 }
 
 export function useSpans(): UseSpansResult {
   const [spans, setSpans] = useState<Span[]>([]);
+  const [metrics, setMetrics] = useState<MetricSample[]>([]);
   const [state, setState] = useState<ConnState>("connecting");
   const [paused, setPaused] = useState(false);
   const recentlyAdded = useRef<Set<string>>(new Set());
@@ -42,6 +46,10 @@ export function useSpans(): UseSpansResult {
       const msg: WsMessage = JSON.parse(ev.data as string);
       if (msg.type === "history") {
         setSpans(msg.spans.slice().reverse());
+      } else if (msg.type === "metrics-history") {
+        setMetrics(msg.samples);
+      } else if (msg.type === "metric") {
+        setMetrics((prev) => [...prev.slice(-(MAX_METRICS - 1)), msg.sample]);
       } else if (msg.type === "span") {
         if (pausedRef.current) {
           bufferRef.current.push(msg.span);
@@ -63,6 +71,7 @@ export function useSpans(): UseSpansResult {
   return {
     spans,
     rootSpans,
+    metrics,
     state,
     isNew: (id) => recentlyAdded.current.has(id),
     clear: () => setSpans([]),

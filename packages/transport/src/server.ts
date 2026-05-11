@@ -6,12 +6,18 @@ import type { Span, SpanStore } from "@sysko/storage";
 import { INTERNAL_SERVER } from "./internal-marker.js";
 import { FALLBACK_HTML } from "./static-fallback.js";
 
+export interface MetricsSource {
+  list(): unknown[];
+  subscribe(listener: (sample: unknown) => void): () => void;
+}
+
 export interface TransportOptions {
   port?: number;
   host?: string;
   store: SpanStore;
   staticDir?: string;
   password?: string;
+  metrics?: MetricsSource;
 }
 
 export interface Transport {
@@ -59,6 +65,7 @@ export function createTransport(options: TransportOptions): Transport {
   const store = options.store;
   const staticDir = options.staticDir ? resolve(options.staticDir) : undefined;
   const password = options.password;
+  const metrics = options.metrics;
 
   let httpServer: Server | undefined;
   let wss: WebSocketServer | undefined;
@@ -115,18 +122,33 @@ export function createTransport(options: TransportOptions): Transport {
     void handleStatic(url, res);
   }
 
-  function attachClient(ws: WebSocket): void {
-    const history = store.list();
-    ws.send(JSON.stringify({ type: "history", spans: history }));
+  function send(ws: WebSocket, payload: unknown): void {
+    if (ws.readyState === ws.OPEN) {
+      ws.send(JSON.stringify(payload));
+    }
+  }
 
-    const off = store.subscribe((span: Span) => {
-      if (ws.readyState === ws.OPEN) {
-        ws.send(JSON.stringify({ type: "span", span }));
-      }
+  function attachClient(ws: WebSocket): void {
+    send(ws, { type: "history", spans: store.list() });
+
+    const offSpans = store.subscribe((span: Span) => {
+      send(ws, { type: "span", span });
     });
 
-    ws.on("close", off);
-    ws.on("error", off);
+    let offMetrics: (() => void) | undefined;
+    if (metrics) {
+      send(ws, { type: "metrics-history", samples: metrics.list() });
+      offMetrics = metrics.subscribe((sample) => {
+        send(ws, { type: "metric", sample });
+      });
+    }
+
+    const cleanup = (): void => {
+      offSpans();
+      offMetrics?.();
+    };
+    ws.on("close", cleanup);
+    ws.on("error", cleanup);
   }
 
   return {

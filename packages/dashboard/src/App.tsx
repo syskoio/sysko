@@ -11,13 +11,14 @@ import { EndpointStats } from "./components/EndpointStats";
 import { Histogram } from "./components/Histogram";
 import { ShortcutsHint } from "./components/ShortcutsHint";
 import { CompareBanner } from "./components/CompareBanner";
+import { SystemTab } from "./components/SystemTab";
 import { useSpans } from "./lib/useSpans";
 import { useFilters } from "./lib/useFilters";
 import { useKeyboard } from "./lib/useKeyboard";
 import { useHashRoute } from "./lib/useHashRoute";
 
 export function App(): React.ReactElement {
-  const { spans, rootSpans, state, isNew, clear, paused, togglePause, getTrace } = useSpans();
+  const { spans, rootSpans, metrics, state, isNew, clear, paused, togglePause, getTrace } = useSpans();
   const filters = useFilters();
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [compareId, setCompareId] = useState<string | undefined>(undefined);
@@ -161,7 +162,9 @@ export function App(): React.ReactElement {
 
       <main className="flex-1 min-h-0 grid" style={{ gridTemplateColumns: detailCols }}>
         <div className="min-h-0 overflow-hidden">
-          {tab === "endpoints" ? (
+          {tab === "system" ? (
+            <SystemTab samples={metrics} />
+          ) : tab === "endpoints" ? (
             <EndpointStats spans={rootSpans} />
           ) : tab === "distribution" ? (
             <Histogram spans={spans} />

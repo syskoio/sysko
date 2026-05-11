@@ -35,6 +35,15 @@ const CASES: RouteCase[] = [
   { method: "GET", path: "/not-found" },
   { method: "GET", path: "/server-error" },
   { method: "GET", path: "/logs" },
+  // plugin routes
+  { method: "GET", path: "/plugins/redis/hit" },
+  { method: "GET", path: "/plugins/redis/miss" },
+  { method: "GET", path: "/plugins/redis/set" },
+  { method: "GET", path: "/plugins/axios" },
+  { method: "GET", path: "/plugins/bullmq/enqueue" },
+  { method: "GET", path: "/plugins/bullmq/process" },
+  { method: "GET", path: "/plugins/mongoose/find" },
+  { method: "GET", path: "/plugins/mongoose/save" },
   { method: "GET", path: "/healthz", redacted: true },
   { method: "GET", path: "/internal/secret", redacted: true },
 ];

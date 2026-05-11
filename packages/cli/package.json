@@ -1,0 +1,21 @@
+{
+  "name": "@sysko/cli",
+  "version": "0.0.1",
+  "description": "CLI do Sysko Observe — `sysko init` injeta o tracing no seu app",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "sysko": "./dist/index.js"
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rimraf dist .turbo *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2"
+  }
+}

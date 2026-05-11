@@ -113,7 +113,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
     addSpanHook(buildRedactHook(options.redact));
   }
 
-  const deactivateInbound = activateHttpInstrumentation(store);
+  const deactivateInbound = activateHttpInstrumentation(store, options.serviceName);
   const deactivateErrors = activateErrorInstrumentation(store);
   const deactivateConsole = activateConsoleInstrumentation();
 

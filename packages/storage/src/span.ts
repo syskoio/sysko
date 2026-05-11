@@ -17,6 +17,7 @@ export interface SpanError {
 }
 
 export interface SpanAttributes {
+  "service.name"?: string;
   "http.method"?: string;
   "http.path"?: string;
   "http.status_code"?: number;

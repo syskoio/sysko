@@ -12,6 +12,14 @@ let patched = false;
 let active = false;
 let ignoreEndpoint: OutboundIgnore | undefined;
 
+// Builds a W3C traceparent header value from a span's internal UUID-based IDs.
+// traceId (UUID, 36 chars) → 32-hex; spanId (UUID, 36 chars) → first 16 hex.
+function makeTraceparent(traceId: string, spanId: string): string {
+  const traceHex = traceId.replace(/-/g, "");
+  const spanHex = spanId.replace(/-/g, "").slice(0, 16);
+  return `00-${traceHex}-${spanHex}-01`;
+}
+
 type RequestFn = typeof http.request;
 
 interface NormalizedReq {
@@ -100,6 +108,13 @@ function wrapRequest(protocol: "http:" | "https:", original: RequestFn): Request
     });
 
     const req = original.apply(this as never, args);
+
+    // Inject traceparent so downstream services can continue the trace.
+    // setHeader is safe here — headers aren't sent until req.end() or req.write().
+    if (span.id) {
+      req.setHeader("traceparent", makeTraceparent(span.traceId, span.id));
+    }
+
     let ended = false;
     const finalize = (): void => {
       if (ended) return;
@@ -159,8 +174,16 @@ function wrapFetch(originalFetch: typeof globalThis.fetch): typeof globalThis.fe
       },
     });
 
+    // Inject traceparent into fetch — build new headers preserving existing ones.
+    let modifiedInit = init;
+    if (span.id) {
+      const h = new Headers(init?.headers);
+      h.set("traceparent", makeTraceparent(span.traceId, span.id));
+      modifiedInit = { ...init, headers: h };
+    }
+
     try {
-      const res = await originalFetch(input, init);
+      const res = await originalFetch(input, modifiedInit);
       span.setAttribute("http.status_code", res.status);
       if (res.status >= 500) span.setStatus("error");
       span.end();

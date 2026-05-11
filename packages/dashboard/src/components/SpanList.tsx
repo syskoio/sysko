@@ -63,6 +63,7 @@ export function SpanList({ rootSpans, allSpans, selectedId, onSelect, isNew, pag
             const bar = durationBar(s.duration, maxDuration);
             const children = childCounts.get(s.traceId) ?? 0;
             const isErr = s.status === "error";
+            const svcName = s.attributes["service.name"];
 
             return (
               <tr
@@ -85,6 +86,11 @@ export function SpanList({ rootSpans, allSpans, selectedId, onSelect, isNew, pag
                   <div className="flex items-center gap-1.5">
                     {isErr && <AlertTriangle className="h-3 w-3 text-red-400 shrink-0" />}
                     <span className="truncate">{path}</span>
+                    {svcName && (
+                      <span className="shrink-0 text-[10px] font-mono text-zinc-500 bg-zinc-800/80 px-1 rounded">
+                        {svcName}
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className={"px-2 py-2 font-mono tabular-nums " + statusColor(code, isErr)}>

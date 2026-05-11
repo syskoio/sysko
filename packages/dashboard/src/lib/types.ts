@@ -22,6 +22,7 @@ export interface Span {
   error?: SpanError;
   logs?: SpanLog[];
   attributes: {
+    "service.name"?: string;
     "http.method"?: string;
     "http.path"?: string;
     "http.route"?: string;

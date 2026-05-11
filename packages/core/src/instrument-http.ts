@@ -1,11 +1,33 @@
 import { Server as HttpServer, type IncomingMessage, type ServerResponse } from "node:http";
 import type { SpanStore } from "@sysko/storage";
 import { INTERNAL_SERVER } from "@sysko/transport";
-import { spanContext } from "./context.js";
+import { spanContext, type SpanContext } from "./context.js";
 import { setActiveStore, startSpanWithContext } from "./span-factory.js";
 
 let patched = false;
 let active = false;
+let activeServiceName: string | undefined;
+
+// Parses the W3C traceparent header and returns an external SpanContext
+// to continue the incoming distributed trace.
+function parseTraceparent(header: string): SpanContext | null {
+  const parts = header.trim().split("-");
+  if (parts.length < 4) return null;
+  const [ver, traceHex, spanHex, flags] = parts;
+  if (ver !== "00" || traceHex?.length !== 32 || spanHex?.length !== 16) return null;
+  const sampled = (parseInt(flags ?? "0", 16) & 1) === 1;
+  // Convert 32-hex traceId to UUID format for internal storage
+  const traceId = [
+    traceHex.slice(0, 8),
+    traceHex.slice(8, 12),
+    traceHex.slice(12, 16),
+    traceHex.slice(16, 20),
+    traceHex.slice(20, 32),
+  ].join("-");
+  // spanHex (16 chars) becomes the spanId — it identifies the upstream span
+  // and will be stored as parentSpanId on our root span.
+  return { traceId, spanId: spanHex, sampled };
+}
 
 type RawEmit = (this: HttpServer, event: string | symbol, ...args: unknown[]) => boolean;
 
@@ -37,11 +59,22 @@ function ensurePatched(): void {
 
     const method = req.method ?? "UNKNOWN";
     const path = pathOf(req.url);
-    const { handle: span, context } = startSpanWithContext({
-      kind: "http.server",
-      name: `${method} ${path}`,
-      attributes: { "http.method": method, "http.path": path },
-    });
+
+    const traceparentHeader = req.headers["traceparent"];
+    const upstream = typeof traceparentHeader === "string"
+      ? parseTraceparent(traceparentHeader)
+      : null;
+
+    const attrs: Record<string, string | number | boolean> = {
+      "http.method": method,
+      "http.path": path,
+    };
+    if (activeServiceName) attrs["service.name"] = activeServiceName;
+
+    const { handle: span, context } = startSpanWithContext(
+      { kind: "http.server", name: `${method} ${path}`, attributes: attrs },
+      upstream ?? undefined,
+    );
 
     // Capture up to 2 KB of response body to surface as error.message on 4xx/5xx.
     // Cast required because write/end have complex overloads not expressible generically.
@@ -101,12 +134,14 @@ function ensurePatched(): void {
   HttpServer.prototype.emit = patchedEmit as unknown as typeof HttpServer.prototype.emit;
 }
 
-export function activateHttpInstrumentation(store: SpanStore): () => void {
+export function activateHttpInstrumentation(store: SpanStore, serviceName?: string): () => void {
+  activeServiceName = serviceName;
   ensurePatched();
   setActiveStore(store);
   active = true;
   return () => {
     active = false;
+    activeServiceName = undefined;
     setActiveStore(null);
   };
 }

@@ -170,11 +170,11 @@ export function startSpan(opts: StartSpanOptions): SpanHandle {
   return handle;
 }
 
-export function startSpanWithContext(opts: StartSpanOptions): {
+export function startSpanWithContext(opts: StartSpanOptions, explicitParent?: SpanContext): {
   handle: SpanHandle;
   context: SpanContext;
 } {
-  const parent = spanContext.getStore();
+  const parent = explicitParent ?? spanContext.getStore();
   return createSpanHandle(opts, parent);
 }
 

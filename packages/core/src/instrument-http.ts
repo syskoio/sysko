@@ -43,12 +43,42 @@ function ensurePatched(): void {
       attributes: { "http.method": method, "http.path": path },
     });
 
+    // Capture up to 2 KB of response body to surface as error.message on 4xx/5xx.
+    // Cast required because write/end have complex overloads not expressible generically.
+    let errorBody = "";
+    const MAX_BODY = 2048;
+    const captureChunk = (chunk: unknown): void => {
+      if (errorBody.length >= MAX_BODY) return;
+      const text =
+        typeof chunk === "string"
+          ? chunk
+          : Buffer.isBuffer(chunk) || chunk instanceof Uint8Array
+          ? Buffer.from(chunk).toString("utf8")
+          : null;
+      if (text !== null) {
+        errorBody += errorBody.length + text.length > MAX_BODY
+          ? text.slice(0, MAX_BODY - errorBody.length) + "…"
+          : text;
+      }
+    };
+    type AnyFn = (...args: unknown[]) => unknown;
+    const origWrite = (res.write as unknown as AnyFn).bind(res);
+    const origEnd = (res.end as unknown as AnyFn).bind(res);
+    (res as unknown as { write: AnyFn }).write = (...args) => { captureChunk(args[0]); return origWrite(...args); };
+    (res as unknown as { end: AnyFn }).end = (...args) => { captureChunk(args[0]); return origEnd(...args); };
+
     let finalized = false;
     const finishOk = (): void => {
       if (finalized) return;
       finalized = true;
-      span.setAttribute("http.status_code", res.statusCode);
-      if (res.statusCode >= 500) span.setStatus("error");
+      const status = res.statusCode;
+      span.setAttribute("http.status_code", status);
+      if (status >= 400) {
+        const body = errorBody.trim();
+        span.setStatus("error", body
+          ? { message: body, name: `HTTP ${status}` }
+          : { message: `HTTP ${status}`, name: `HTTP ${status}` });
+      }
       span.end();
     };
     const closeMaybeAborted = (): void => {

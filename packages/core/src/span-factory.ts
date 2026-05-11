@@ -74,6 +74,13 @@ function toError(err: unknown): SpanError {
     if (err.name !== undefined) result.name = err.name;
     return result;
   }
+  // plain object with message (e.g. { message, name } from HTTP body capture)
+  if (typeof err === "object" && err !== null && "message" in err) {
+    const obj = err as { message: unknown; name?: unknown };
+    const result: SpanError = { message: String(obj.message) };
+    if (typeof obj.name === "string") result.name = obj.name;
+    return result;
+  }
   return { message: String(err) };
 }
 
@@ -118,7 +125,10 @@ function createSpanHandle(opts: StartSpanOptions, parent: SpanContext | undefine
     },
     setStatus(s, err) {
       status = s;
-      if (s === "error" && err !== undefined) error = toError(err);
+      // first error set wins — thrown exceptions always fire before the HTTP finish handler
+      if (s === "error" && err !== undefined && error === undefined) {
+        error = toError(err);
+      }
     },
     addLog(level, message) {
       logs.push({ ts: Date.now(), level, message });

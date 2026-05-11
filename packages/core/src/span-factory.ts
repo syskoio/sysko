@@ -20,6 +20,9 @@ export interface SpanHandle {
 
 let activeStore: SpanStore | null = null;
 let samplingRate = 1;
+let rateLimit = Infinity;
+let rateBucket = Infinity;
+let rateLastRefill = 0;
 
 export function setActiveStore(store: SpanStore | null): void {
   activeStore = store;
@@ -27,6 +30,25 @@ export function setActiveStore(store: SpanStore | null): void {
 
 export function setSamplingRate(rate: number): void {
   samplingRate = Math.max(0, Math.min(1, rate));
+}
+
+export function setRateLimit(spansPerSecond: number): void {
+  rateLimit = spansPerSecond > 0 ? spansPerSecond : Infinity;
+  rateBucket = rateLimit;
+  rateLastRefill = Date.now();
+}
+
+function acquireRateToken(): boolean {
+  if (rateLimit === Infinity) return true;
+  const now = Date.now();
+  const elapsed = (now - rateLastRefill) / 1000;
+  rateBucket = Math.min(rateLimit, rateBucket + elapsed * rateLimit);
+  rateLastRefill = now;
+  if (rateBucket >= 1) {
+    rateBucket -= 1;
+    return true;
+  }
+  return false;
 }
 
 const activeHandles = new Map<string, SpanHandle>();
@@ -115,7 +137,7 @@ function createSpanHandle(opts: StartSpanOptions, parent: SpanContext | undefine
         ...(error !== undefined ? { error } : {}),
       };
       const transformed = applyHooks(span);
-      if (transformed && activeStore) {
+      if (transformed && activeStore && acquireRateToken()) {
         activeStore.push(transformed);
       }
     },

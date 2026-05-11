@@ -11,6 +11,7 @@ export interface TransportOptions {
   host?: string;
   store: SpanStore;
   staticDir?: string;
+  password?: string;
 }
 
 export interface Transport {
@@ -35,11 +36,29 @@ const MIME: Record<string, string> = {
   ".ico": "image/x-icon",
 };
 
+function checkBasicAuth(req: IncomingMessage, password: string): boolean {
+  const header = req.headers.authorization;
+  if (!header?.startsWith("Basic ")) return false;
+  const decoded = Buffer.from(header.slice(6), "base64").toString("utf8");
+  const colonIdx = decoded.indexOf(":");
+  if (colonIdx === -1) return false;
+  return decoded.slice(colonIdx + 1) === password;
+}
+
+function rejectUnauthorized(res: ServerResponse): void {
+  res.writeHead(401, {
+    "WWW-Authenticate": 'Basic realm="sysko dashboard"',
+    "content-type": "text/plain",
+  });
+  res.end("Unauthorized");
+}
+
 export function createTransport(options: TransportOptions): Transport {
   const port = options.port ?? DEFAULT_PORT;
   const host = options.host ?? DEFAULT_HOST;
   const store = options.store;
   const staticDir = options.staticDir ? resolve(options.staticDir) : undefined;
+  const password = options.password;
 
   let httpServer: Server | undefined;
   let wss: WebSocketServer | undefined;
@@ -88,6 +107,10 @@ export function createTransport(options: TransportOptions): Transport {
   }
 
   function onRequest(req: IncomingMessage, res: ServerResponse): void {
+    if (password && !checkBasicAuth(req, password)) {
+      rejectUnauthorized(res);
+      return;
+    }
     const url = req.url ?? "/";
     void handleStatic(url, res);
   }
@@ -115,6 +138,11 @@ export function createTransport(options: TransportOptions): Transport {
       server.on("upgrade", (req, socket, head) => {
         const url = req.url ?? "";
         if (!url.startsWith(WS_PATH)) {
+          socket.destroy();
+          return;
+        }
+        if (password && !checkBasicAuth(req, password)) {
+          socket.write("HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic realm=\"sysko dashboard\"\r\n\r\n");
           socket.destroy();
           return;
         }

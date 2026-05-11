@@ -6,6 +6,7 @@ export interface SpanStore {
   push(span: Span): void;
   list(): Span[];
   subscribe(listener: SpanListener): () => void;
+  close?(): void;
 }
 
 const DEFAULT_CAPACITY = 1000;

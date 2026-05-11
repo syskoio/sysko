@@ -196,14 +196,18 @@ export function createTransport(options: TransportOptions): Transport {
       return;
     }
 
-    if (password && !checkBasicAuth(req, password)) {
-      rejectUnauthorized(res);
-      return;
-    }
+    // Ingest endpoint: protect with auth when password is set.
     if (ingest && req.method === "POST" && url === "/v1/spans") {
+      if (password && !checkBasicAuth(req, password)) {
+        rejectUnauthorized(res);
+        return;
+      }
       handleIngest(req, res);
       return;
     }
+
+    // Static assets are served without auth so the React app can load
+    // and render the login screen. The WS connection enforces auth on upgrade.
     void handleStatic(url, res);
   }
 

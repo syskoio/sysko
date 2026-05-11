@@ -1,7 +1,7 @@
 import { getActiveHandle, getCurrentContext } from "@sysko/core";
 
 interface FastifyRouteOptions {
-  url?: string;
+  url?: string | undefined;
 }
 
 interface FastifyLikeRequest {
@@ -10,14 +10,10 @@ interface FastifyLikeRequest {
   method?: string;
 }
 
-interface FastifyLikeReply {
-  prependOnceListener?(event: string, listener: () => void): void;
-}
-
 interface FastifyLikeInstance {
   addHook(
     event: "onRequest",
-    handler: (request: FastifyLikeRequest, reply: FastifyLikeReply, done: () => void) => void,
+    handler: (request: FastifyLikeRequest, reply: unknown) => Promise<void>,
   ): void;
 }
 
@@ -26,7 +22,7 @@ function routeOf(req: FastifyLikeRequest): string | undefined {
 }
 
 export function instrumentFastify(app: FastifyLikeInstance): void {
-  app.addHook("onRequest", (request, _reply, done) => {
+  app.addHook("onRequest", async (request) => {
     const route = routeOf(request);
     if (route) {
       const ctx = getCurrentContext();
@@ -38,6 +34,5 @@ export function instrumentFastify(app: FastifyLikeInstance): void {
         }
       }
     }
-    done();
   });
 }

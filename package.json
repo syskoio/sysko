@@ -2,8 +2,16 @@
   "name": "sysko",
   "version": "0.0.1",
   "private": true,
-  "description": "Sysko Observe — biblioteca de observabilidade zero-config para Node.js",
+  "description": "Sysko Observe — zero-config observability for Node.js",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/syskoio/sysko.git"
+  },
+  "homepage": "https://github.com/syskoio/sysko#readme",
+  "bugs": {
+    "url": "https://github.com/syskoio/sysko/issues"
+  },
   "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": ">=20"

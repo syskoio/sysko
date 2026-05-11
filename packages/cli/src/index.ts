@@ -11,7 +11,7 @@ flags:
   --yes, -y               apply changes (without this, init is a dry run)
   --cwd <path>            run as if from <path> instead of process.cwd()
 
-docs: https://github.com/your-org/sysko
+docs: https://github.com/syskoio/sysko
 `;
 
 interface ParsedArgs {

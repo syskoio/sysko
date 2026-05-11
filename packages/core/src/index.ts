@@ -214,7 +214,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
       setRateLimit(0);
       metricsCollector.stop();
       alertEngine?.stop();
-      exporter?.stop();
+      await exporter?.stop();
       await transport?.stop();
       store.close?.();
       active = undefined;

@@ -47,8 +47,8 @@ export class SpanExporter {
     }
   }
 
-  stop(): void {
+  async stop(): Promise<void> {
     clearInterval(this.timer);
-    void this.flush();
+    await this.flush();
   }
 }

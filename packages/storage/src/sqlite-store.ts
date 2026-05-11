@@ -15,6 +15,8 @@ export class SqliteStore implements SpanStore {
   private readonly maxRows: number;
   private readonly insertStmt: Database.Statement<[string, string, number]>;
   private readonly pruneStmt: Database.Statement<[number]>;
+  private readonly ageStmt: Database.Statement<[number]>;
+  private readonly retentionTimer: ReturnType<typeof setInterval> | undefined;
   private pushCount = 0;
 
   constructor(path: string, retention: RetentionOptions = {}) {
@@ -36,9 +38,6 @@ export class SqliteStore implements SpanStore {
     const days = retention.days ?? 7;
     this.maxRows = retention.maxRows ?? 5000;
 
-    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-    this.db.prepare<[number]>("DELETE FROM spans WHERE start_time < ?").run(cutoff);
-
     this.insertStmt = this.db.prepare<[string, string, number]>(
       "INSERT OR REPLACE INTO spans (id, data, start_time) VALUES (?, ?, ?)",
     );
@@ -48,6 +47,18 @@ export class SqliteStore implements SpanStore {
          LIMIT MAX(0, (SELECT COUNT(*) FROM spans) - ?)
        )`,
     );
+    this.ageStmt = this.db.prepare<[number]>(
+      "DELETE FROM spans WHERE start_time < ?",
+    );
+
+    const cutoffMs = days * 24 * 60 * 60 * 1000;
+    this.ageStmt.run(Date.now() - cutoffMs);
+
+    // Periodically evict spans older than the retention window (every hour).
+    this.retentionTimer = setInterval(() => {
+      this.ageStmt.run(Date.now() - cutoffMs);
+    }, 60 * 60 * 1000);
+    this.retentionTimer.unref();
   }
 
   push(span: Span): void {
@@ -77,6 +88,7 @@ export class SqliteStore implements SpanStore {
   }
 
   close(): void {
+    clearInterval(this.retentionTimer);
     this.db.close();
   }
 }

@@ -1,4 +1,4 @@
-export type SpanKind = "http.server" | "http.client" | "db.query" | "internal";
+export type SpanKind = "http.server" | "http.client" | "db.query" | "internal" | "cache.command" | "queue.publish" | "queue.consume";
 
 export type SpanStatus = "ok" | "error";
 

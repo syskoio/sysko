@@ -22,6 +22,22 @@
     "./fastify": {
       "types": "./dist/fastify.d.ts",
       "import": "./dist/fastify.js"
+    },
+    "./redis": {
+      "types": "./dist/redis.d.ts",
+      "import": "./dist/redis.js"
+    },
+    "./axios": {
+      "types": "./dist/axios.d.ts",
+      "import": "./dist/axios.js"
+    },
+    "./bullmq": {
+      "types": "./dist/bullmq.d.ts",
+      "import": "./dist/bullmq.js"
+    },
+    "./mongoose": {
+      "types": "./dist/mongoose.d.ts",
+      "import": "./dist/mongoose.js"
     }
   },
   "files": ["dist", "src"],

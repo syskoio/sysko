@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Database, Globe, Server, AlertCircle, ChevronRight, ChevronDown } from "lucide-react";
+import { Database, Globe, Server, AlertCircle, ChevronRight, ChevronDown, Layers, Send, Inbox } from "lucide-react";
 import type { Span, SpanLog } from "../lib/types";
 import { fmtDuration } from "../lib/format";
 
@@ -45,19 +45,25 @@ function buildTree(trace: Span[]): { roots: Node[]; flat: Node[] } {
 }
 
 function kindIcon(kind: string): React.ReactNode {
-  if (kind === "http.server") return <Server className="h-3 w-3" strokeWidth={2.25} />;
-  if (kind === "http.client") return <Globe className="h-3 w-3" strokeWidth={2.25} />;
-  if (kind === "db.query") return <Database className="h-3 w-3" strokeWidth={2.25} />;
-  if (kind === "internal") return <AlertCircle className="h-3 w-3" strokeWidth={2.25} />;
+  if (kind === "http.server")   return <Server  className="h-3 w-3" strokeWidth={2.25} />;
+  if (kind === "http.client")   return <Globe   className="h-3 w-3" strokeWidth={2.25} />;
+  if (kind === "db.query")      return <Database className="h-3 w-3" strokeWidth={2.25} />;
+  if (kind === "internal")      return <AlertCircle className="h-3 w-3" strokeWidth={2.25} />;
+  if (kind === "cache.command") return <Layers  className="h-3 w-3" strokeWidth={2.25} />;
+  if (kind === "queue.publish") return <Send    className="h-3 w-3" strokeWidth={2.25} />;
+  if (kind === "queue.consume") return <Inbox   className="h-3 w-3" strokeWidth={2.25} />;
   return <ChevronRight className="h-3 w-3" strokeWidth={2.25} />;
 }
 
 function kindColor(kind: string, isError: boolean): string {
   if (isError) return "bg-red-500/70";
-  if (kind === "http.server") return "bg-sky-500/70";
-  if (kind === "http.client") return "bg-emerald-500/70";
-  if (kind === "db.query") return "bg-violet-500/70";
-  if (kind === "internal") return "bg-amber-500/70";
+  if (kind === "http.server")   return "bg-sky-500/70";
+  if (kind === "http.client")   return "bg-emerald-500/70";
+  if (kind === "db.query")      return "bg-violet-500/70";
+  if (kind === "internal")      return "bg-amber-500/70";
+  if (kind === "cache.command") return "bg-teal-500/70";
+  if (kind === "queue.publish") return "bg-cyan-500/70";
+  if (kind === "queue.consume") return "bg-cyan-500/70";
   return "bg-zinc-500/70";
 }
 

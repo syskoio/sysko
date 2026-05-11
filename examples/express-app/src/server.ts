@@ -18,7 +18,7 @@ sysko.onSpan((span) => {
 
 const app = express();
 instrumentExpress(app);
-defineRoutes(app);
+defineRoutes(app, sysko);
 
 const port = 3000;
 app.listen(port, () => {

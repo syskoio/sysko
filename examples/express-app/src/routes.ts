@@ -1,7 +1,7 @@
 import type { Express } from "express";
-import { withSpan } from "@sysko/core";
+import { withSpan, type Sysko } from "@sysko/core";
 
-export function defineRoutes(app: Express): void {
+export function defineRoutes(app: Express, sysko: Sysko): void {
   app.get("/", (_req, res) => {
     res.send("hello sysko");
   });
@@ -46,5 +46,26 @@ export function defineRoutes(app: Express): void {
 
   app.get("/throw", async () => {
     throw new Error("intentional handler failure");
+  });
+
+  app.get("/logs", async (_req, res) => {
+    console.log("request received");
+    console.info("fetching user from db");
+
+    const user = await withSpan({ kind: "db.query", name: "users.findOne" }, async () => {
+      await new Promise((r) => setTimeout(r, 30));
+      console.log("query executed, 1 row returned");
+      return { id: 1, name: "alice", role: "admin" };
+    });
+
+    if (user.role === "admin") {
+      console.warn("admin access detected — audit log recommended");
+    }
+
+    sysko.log("info", `serving user ${user.id} via sysko.log()`);
+
+    console.error("simulated error mid-request (non-fatal)");
+
+    res.json(user);
   });
 }

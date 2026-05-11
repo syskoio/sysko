@@ -48,6 +48,10 @@ const CASES: RouteCase[] = [
   { method: "GET", path: "/plugins/sequelize/insert" },
   { method: "GET", path: "/plugins/typeorm/find" },
   { method: "GET", path: "/plugins/typeorm/insert" },
+  { method: "GET", path: "/plugins/prisma/find" },
+  { method: "GET", path: "/plugins/prisma/find-one" },
+  { method: "GET", path: "/plugins/prisma/create" },
+  { method: "GET", path: "/plugins/prisma/count" },
   { method: "GET", path: "/healthz", redacted: true },
   { method: "GET", path: "/internal/secret", redacted: true },
 ];

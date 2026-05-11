@@ -8,6 +8,8 @@ import type { BullMQJob } from "@sysko/plugins/bullmq";
 import { instrumentMongoose } from "@sysko/plugins/mongoose";
 import { instrumentSequelize } from "@sysko/plugins/sequelize";
 import { instrumentTypeORM } from "@sysko/plugins/typeorm";
+import { instrumentPrisma } from "@sysko/plugins/prisma";
+import type { PrismaMiddlewareParams } from "@sysko/plugins/prisma";
 
 // ─── Redis stub ────────────────────────────────────────────────────────────────
 // In-memory store that satisfies instrumentRedis's structural contract.
@@ -157,6 +159,61 @@ const typeormStub = {
   }),
 };
 instrumentTypeORM(typeormStub);
+
+// ─── Prisma stub ───────────────────────────────────────────────────────────────
+// Simulates the $use middleware chain without a real database.
+type PrismaMiddleware = (
+  params: PrismaMiddlewareParams,
+  next: (params: PrismaMiddlewareParams) => Promise<unknown>,
+) => Promise<unknown>;
+
+const _prismaMiddlewares: PrismaMiddleware[] = [];
+
+const _prismaData: Record<string, unknown[]> = {
+  User: [
+    { id: 1, name: "alice", email: "alice@example.com" },
+    { id: 2, name: "bob",   email: "bob@example.com"   },
+  ],
+  Post: [
+    { id: 1, title: "hello sysko", published: true, authorId: 1 },
+  ],
+};
+
+async function runPrismaOp(model: string, action: string, args: unknown = {}): Promise<unknown> {
+  const params: PrismaMiddlewareParams = {
+    model,
+    action,
+    args,
+    dataPath: [],
+    runInTransaction: false,
+  };
+
+  // Walk the middleware chain, then execute the stub at the end.
+  const execute = async (p: PrismaMiddlewareParams): Promise<unknown> => {
+    await new Promise((r) => setTimeout(r, 8 + Math.random() * 12));
+    const rows = _prismaData[p.model ?? ""] ?? [];
+    if (p.action === "findMany") return rows;
+    if (p.action === "findUnique") return rows[0] ?? null;
+    if (p.action === "create") return { id: rows.length + 1, ...(p.args as Record<string, unknown>) };
+    if (p.action === "update") return { ...(rows[0] as Record<string, unknown>), ...(p.args as Record<string, unknown>) };
+    if (p.action === "delete") return rows[0] ?? null;
+    if (p.action === "count") return rows.length;
+    return null;
+  };
+
+  // Build the chain: each middleware calls next(), which invokes the next one.
+  const chain = _prismaMiddlewares.reduceRight<(p: PrismaMiddlewareParams) => Promise<unknown>>(
+    (next, mw) => (p) => mw(p, next),
+    execute,
+  );
+
+  return chain(params);
+}
+
+const prismaStub = {
+  $use: (mw: PrismaMiddleware) => { _prismaMiddlewares.push(mw); },
+};
+instrumentPrisma(prismaStub);
 
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -327,5 +384,29 @@ export function defineRoutes(app: Express, sysko: Sysko): void {
     const runner = typeormStub.createQueryRunner();
     const result = await runner.query("INSERT INTO posts (title, published) VALUES (?, ?)", ["new post", true]);
     res.json({ ok: true, dbType: typeormStub.options.type, result });
+  });
+
+  // Prisma — findMany (db.model: User)
+  app.get("/plugins/prisma/find", async (_req, res) => {
+    const users = await runPrismaOp("User", "findMany");
+    res.json(users);
+  });
+
+  // Prisma — findUnique (db.model: Post)
+  app.get("/plugins/prisma/find-one", async (_req, res) => {
+    const post = await runPrismaOp("Post", "findUnique", { where: { id: 1 } });
+    res.json(post);
+  });
+
+  // Prisma — create (db.model: User)
+  app.get("/plugins/prisma/create", async (_req, res) => {
+    const user = await runPrismaOp("User", "create", { data: { name: "carol", email: "carol@example.com" } });
+    res.json(user);
+  });
+
+  // Prisma — count (db.model: Post)
+  app.get("/plugins/prisma/count", async (_req, res) => {
+    const count = await runPrismaOp("Post", "count");
+    res.json({ count });
   });
 }

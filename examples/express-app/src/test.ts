@@ -54,6 +54,14 @@ const CASES: RouteCase[] = [
   { method: "GET", path: "/plugins/prisma/count" },
   { method: "GET", path: "/healthz", redacted: true },
   { method: "GET", path: "/internal/secret", redacted: true },
+  // error fingerprinting demo — each creates a child span with status: error
+  { method: "GET", path: "/errors/type-error" },
+  { method: "GET", path: "/errors/range-error" },
+  { method: "GET", path: "/errors/validation/name" },
+  { method: "GET", path: "/errors/validation/email" }, // same group as /name
+  { method: "GET", path: "/errors/validation/name" },  // hit /name twice → count=2 in errors tab
+  { method: "GET", path: "/errors/db" },
+  { method: "GET", path: "/errors/cascade" },
 ];
 
 interface AlertFired {

@@ -215,6 +215,25 @@ const prismaStub = {
 };
 instrumentPrisma(prismaStub);
 
+// ─── Error fingerprinting demo helpers ─────────────────────────────────────────
+// Defined at module scope so their line numbers are stable and fingerprints
+// remain consistent across restarts. Errors thrown from throwValidationError
+// share the same stack frame regardless of which route called it, so they
+// land in the same group in the errors tab.
+
+function throwValidationError(field: string): never {
+  const err = new Error(`validation failed: '${field}' is required`);
+  err.name = "ValidationError";
+  throw err;
+}
+
+class DatabaseError extends Error {
+  constructor(operation: string) {
+    super(`database unavailable during ${operation}: ECONNREFUSED`);
+    this.name = "DatabaseError";
+  }
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 
 export function defineRoutes(app: Express, sysko: Sysko): void {
@@ -408,5 +427,82 @@ export function defineRoutes(app: Express, sysko: Sysko): void {
   app.get("/plugins/prisma/count", async (_req, res) => {
     const count = await runPrismaOp("Post", "count");
     res.json({ count });
+  });
+
+  // ─── Error fingerprinting demo ────────────────────────────────────────────────
+  // Each route below creates a child span via withSpan that ends up with
+  // status: error. The errors tab groups them by (error.name, top stack frame).
+
+  // TypeError — always the same frame → collapses into one group however often hit.
+  app.get("/errors/type-error", async (_req, res) => {
+    try {
+      await withSpan({ kind: "internal", name: "parse response" }, async () => {
+        throw new TypeError("Cannot read properties of null (reading 'id')");
+      });
+    } catch {
+      res.status(500).json({ error: "internal error" });
+    }
+  });
+
+  // RangeError — distinct name → separate group from TypeError.
+  app.get("/errors/range-error", async (_req, res) => {
+    try {
+      await withSpan({ kind: "internal", name: "validate range" }, async () => {
+        throw new RangeError("value 150 is out of range [0, 100]");
+      });
+    } catch {
+      res.status(400).json({ error: "range error" });
+    }
+  });
+
+  // Two routes share throwValidationError() — the top stack frame is identical
+  // so both land in the same fingerprint group in the errors tab, even though
+  // they serve different endpoints (visible in the "seen on" list).
+  app.get("/errors/validation/name", async (_req, res) => {
+    try {
+      await withSpan({ kind: "internal", name: "validate user name" }, async () => {
+        throwValidationError("name");
+      });
+    } catch {
+      res.status(400).json({ error: "validation", field: "name" });
+    }
+  });
+
+  app.get("/errors/validation/email", async (_req, res) => {
+    try {
+      await withSpan({ kind: "internal", name: "validate user email" }, async () => {
+        throwValidationError("email");
+      });
+    } catch {
+      res.status(400).json({ error: "validation", field: "email" });
+    }
+  });
+
+  // Custom error class — separate group, different name and constructor frame.
+  app.get("/errors/db", async (_req, res) => {
+    try {
+      await withSpan({ kind: "db.query", name: "users.findById" }, async () => {
+        await new Promise((r) => setTimeout(r, 10));
+        throw new DatabaseError("findById");
+      });
+    } catch {
+      res.status(503).json({ error: "service unavailable" });
+    }
+  });
+
+  // Nested withSpan cascade — outer span wraps inner; only the inner span
+  // (inventory.decrement) is error. Waterfall shows the full chain.
+  app.get("/errors/cascade", async (_req, res) => {
+    try {
+      await withSpan({ kind: "internal", name: "process order" }, async () => {
+        await new Promise((r) => setTimeout(r, 10));
+        await withSpan({ kind: "db.query", name: "inventory.decrement" }, async () => {
+          await new Promise((r) => setTimeout(r, 15));
+          throw new Error("insufficient stock: SKU-42 is out of stock");
+        });
+      });
+    } catch {
+      res.status(409).json({ error: "conflict", reason: "insufficient stock" });
+    }
   });
 }

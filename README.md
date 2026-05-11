@@ -1,12 +1,13 @@
 # Sysko Observe
 
-> Observabilidade zero-config para Node.js — Chrome DevTools para backend.
+> Zero-config observability for Node.js — Chrome DevTools for your backend.
 
+[![CI](https://github.com/syskoio/sysko/actions/workflows/ci.yml/badge.svg)](https://github.com/syskoio/sysko/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A520-blue.svg)](#requirements)
 [![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)](#status)
 
-Sysko é uma biblioteca de tracing e dashboard para Node.js que tenta substituir o stack OpenTelemetry + Grafana + Jaeger + Datadog quando você é uma startup, SaaS, microsserviço ou dev solo — sem config, sem agent externo, sem painel pago.
+Sysko is a tracing library and realtime dashboard for Node.js. It aims to replace the OpenTelemetry + Grafana + Jaeger + Datadog stack when you're a startup, SaaS, microservice, or solo developer — no config, no external agent, no paid panel.
 
 ```ts
 import { init } from "@sysko/core";
@@ -16,32 +17,32 @@ await init({ serviceName: "my-app" });
 // rest of your app — requests are now traced automatically
 ```
 
-Abre `http://localhost:9999` e vê tudo em tempo real.
+Open `http://localhost:9999` and watch everything live.
 
 ---
 
-## Tese
+## Thesis
 
-- **Zero-config.** `init()` e funciona. Defaults sensatos > opções.
-- **UX absurda.** Instalar e ver dados em menos de 2 minutos.
-- **Tracing automático.** Você não espalha `tracer.start(...)` no código. Instrumentação acontece via monkeypatch em `http.Server.prototype.emit`, `http.request`, `globalThis.fetch` e `AsyncLocalStorage`.
-- **Dashboard realtime no navegador.** Sem Prometheus, sem Loki, sem coletor externo. Tudo embutido no processo.
+- **Zero-config.** Call `init()` and it works. Sensible defaults beat options.
+- **Absurd UX.** From install to seeing data in under 2 minutes.
+- **Automatic tracing.** You don't sprinkle `tracer.start(...)` across your code. Instrumentation happens through monkeypatching `http.Server.prototype.emit`, `http.request`, `globalThis.fetch`, and `AsyncLocalStorage`.
+- **Realtime dashboard in the browser.** No Prometheus, no Loki, no external collector. Everything embedded in your process.
 
-Para quem **não é**: ferramenta de SRE corporativo. Sysko prioriza atrito zero sobre extensibilidade infinita.
+What Sysko is **not**: an enterprise SRE platform. We prioritize zero friction over infinite extensibility.
 
 ---
 
 ## Status
 
-Alpha. Ainda não publicado no npm — instalação atualmente via tarballs locais (veja [Instalando em um projeto existente](#instalando-em-um-projeto-existente)).
+Alpha. Not yet published to npm — currently distributed as local tarballs (see [Installing in an existing project](#installing-in-an-existing-project)).
 
-Roadmap em [ROADMAP.md](ROADMAP.md). Fases 1, 2, 3 concluídas; Fase 4 parcial.
+Roadmap in [ROADMAP.md](ROADMAP.md). Phases 1, 2, 3 complete; phase 4 partial.
 
 ---
 
 ## Quick start
 
-### 1. Em um projeto novo dentro deste monorepo
+### 1. Inside this monorepo
 
 ```bash
 pnpm install
@@ -49,29 +50,32 @@ pnpm build
 pnpm --filter example-express-app start
 ```
 
-Em outro terminal:
+In another terminal:
 
 ```bash
 pnpm --filter example-express-app test
 ```
 
-Abre [http://localhost:9999](http://localhost:9999) — dashboard ao vivo enquanto o tráfego flui.
+Open [http://localhost:9999](http://localhost:9999) — the dashboard shows traffic live as the test runner fires requests.
 
-### 2. Instalando em um projeto existente
+### 2. Installing in an existing project
 
-Como ainda não publicamos no npm, distribuímos via tarballs:
+While we haven't published to npm yet, we distribute via tarballs:
 
 ```bash
-# no diretório do sysko
+# in the sysko repo
 pnpm pack:all
-# gera dist-packs/sysko-*.tgz
+# generates dist-packs/sysko-*.tgz
+```
 
-# no seu projeto
+In your project:
+
+```bash
 mkdir vendor
 cp /path/to/sysko/dist-packs/*.tgz vendor/
 ```
 
-Adicione ao `package.json` do seu projeto:
+Add the following to your project's `package.json`:
 
 ```jsonc
 {
@@ -85,20 +89,20 @@ Adicione ao `package.json` do seu projeto:
 }
 ```
 
-Instale e inicialize:
+Then install and initialize:
 
 ```bash
 pnpm add ./vendor/sysko-core-0.0.1.tgz
-pnpm add ./vendor/sysko-plugins-0.0.1.tgz   # opcional, para route templates
+pnpm add ./vendor/sysko-plugins-0.0.1.tgz   # optional, for route templates
 ```
 
 ```ts
-// no topo do seu entry
+// at the top of your entry file
 import { init } from "@sysko/core";
 await init({ serviceName: "my-app" });
 ```
 
-Ou use o CLI para fazer isso automaticamente:
+Or use the CLI to do this automatically:
 
 ```bash
 node /path/to/sysko/packages/cli/dist/index.js init --yes
@@ -106,53 +110,53 @@ node /path/to/sysko/packages/cli/dist/index.js init --yes
 
 ---
 
-## O que você ganha
+## What you get
 
-- **Captura automática de requests HTTP** entrando e saindo do processo (`http.request`, `https.request`, `fetch` global)
-- **Span hierarchy** com `traceId` e `parentSpanId` propagados via `AsyncLocalStorage`
-- **Captura de erros**: status 5xx, request aborts, `uncaughtException`, `unhandledRejection` — todos marcam o span ativo
-- **Dashboard realtime** com:
-  - Lista de spans com pause/clear
-  - Detail panel com waterfall view de todos os spans do trace
-  - Agregação por endpoint (count, error rate, p50/p95/p99, max)
-  - Histograma de latência
-  - Filtros (método, faixa de status, duração mínima, search em path)
-  - Compare traces (split view)
-  - Export trace como JSON
-  - URLs compartilháveis (`#/trace/<id>` e `#/trace/<A>/vs/<B>`)
+- **Automatic capture of HTTP requests** entering and leaving the process (`http.request`, `https.request`, `fetch` global)
+- **Span hierarchy** with `traceId` and `parentSpanId` propagated through `AsyncLocalStorage`
+- **Error capture**: 5xx responses, request aborts, `uncaughtException`, `unhandledRejection` — all mark the active span
+- **Realtime dashboard** featuring:
+  - Span list with pause/clear
+  - Detail panel with full trace waterfall view
+  - Per-endpoint aggregation (count, error rate, p50/p95/p99, max)
+  - Latency histogram
+  - Filters (method, status range, minimum duration, path search)
+  - Compare traces (side-by-side split view)
+  - Trace export as JSON
+  - Shareable URLs (`#/trace/<id>` and `#/trace/<A>/vs/<B>`)
   - Keyboard shortcuts (`/`, `j`/`k`, `Esc`, `Space`, `c`)
-- **Hook API** para enriquecer ou descartar spans antes de gravar
-- **Sampling** propagado por trace (zero alocação em spans não amostrados)
-- **Redação PII** para query params sensíveis e paths inteiros
+- **Hook API** to enrich or drop spans before they get stored
+- **Sampling** propagated per trace (zero allocation for unsampled spans)
+- **PII redaction** for sensitive query params and entire paths
 
 ---
 
-## Frameworks suportados
+## Supported frameworks
 
-| Framework        | Tracing automático | Route templates                    |
-| ---------------- | ------------------ | ---------------------------------- |
-| Express          | sim                | `@sysko/plugins/express`           |
-| Fastify          | sim                | `@sysko/plugins/fastify`           |
-| Qualquer http.Server | sim            | n/a                                |
-| Prisma (queries) | n/a                | `@sysko/plugins/prisma`            |
+| Framework             | Auto-tracing | Route templates             |
+| --------------------- | ------------ | --------------------------- |
+| Express               | yes          | `@sysko/plugins/express`    |
+| Fastify               | yes          | `@sysko/plugins/fastify`    |
+| Any `http.Server`     | yes          | n/a                         |
+| Prisma (DB queries)   | n/a          | `@sysko/plugins/prisma`     |
 
-NestJS e Next.js funcionam para captura automática (ambos usam `http.Server` por baixo), mas ainda não têm plugin específico para route templates.
+NestJS and Next.js work for automatic capture (both use `http.Server` underneath), but don't have dedicated plugins for route templates yet.
 
 ---
 
-## Configuração
+## Configuration
 
 ```ts
 await init({
-  serviceName: "my-app",         // aparece nos spans
-  capacity: 1000,                // tamanho do ring buffer in-memory
-  sampling: 1,                   // 0..1 — fração de traces a capturar
+  serviceName: "my-app",         // appears in spans
+  capacity: 1000,                // in-memory ring buffer size
+  sampling: 1,                   // 0..1 — fraction of traces to capture
   redact: {
-    paths: ["/healthz", "/internal/*"],   // glob ou RegExp
-    queryParams: ["token", "apiKey"],     // mascarados como ***
+    paths: ["/healthz", "/internal/*"],   // glob or RegExp
+    queryParams: ["token", "apiKey"],     // masked as ***
   },
   dashboard: {
-    port: 9999,                  // ou `false` para desligar o dashboard
+    port: 9999,                  // or `false` to disable the dashboard
     host: "127.0.0.1",
   },
 });
@@ -165,90 +169,99 @@ const sysko = await init({...});
 
 sysko.onSpan((span) => {
   span.attributes["service.region"] = process.env.REGION ?? "local";
-  return span;          // retorna Span para substituir
-                        // retorna null para descartar
-                        // não retorna nada (void) para manter
+  return span;          // return a Span to replace
+                        // return null to drop
+                        // return nothing (void) to keep as-is
 });
 ```
 
-### Spans customizados
+### Custom spans
 
 ```ts
 import { withSpan } from "@sysko/core";
 
 await withSpan({ kind: "internal", name: "expensive-job" }, async () => {
-  // suas operações; span fecha automaticamente (mesmo se throw)
+  // your work; span closes automatically (even on throw)
 });
 ```
 
 ---
 
-## Arquitetura
+## Architecture
 
 ```
 packages/
-├── core/        # API pública; orquestra storage + transport; tracing automático
-├── storage/     # Ring buffer in-memory
-├── transport/   # Servidor HTTP+WS que serve dashboard e broadcasta spans
-├── dashboard/   # UI React + Vite + Tailwind v4
-├── plugins/     # Integrações opt-in: Express, Fastify, Prisma
+├── core/        # Public API; orchestrates storage + transport; automatic tracing
+├── storage/     # In-memory ring buffer
+├── transport/   # HTTP + WebSocket server that serves the dashboard and broadcasts spans
+├── dashboard/   # React + Vite + Tailwind v4 UI
+├── plugins/     # Opt-in integrations: Express, Fastify, Prisma
 └── cli/         # `sysko init`
 ```
 
-Direção de dependências:
+Dependency direction:
 
 ```
-core       →  storage, transport      (core orquestra)
+core       →  storage, transport      (core orchestrates)
 plugins    →  core
-dashboard  →  (build estático servido pelo transport)
-transport, storage  →  (autônomos)
+dashboard  →  (static build served by transport)
+transport, storage  →  (standalone)
 ```
 
 ---
 
-## Desenvolvimento
+## Requirements
 
-Requer Node ≥ 20, pnpm ≥ 10.
+- **Node.js ≥ 20** (uses modern `AsyncLocalStorage` and `perf_hooks`)
+- **pnpm ≥ 10** (recommended for the monorepo; other package managers should work in consumer projects)
+
+---
+
+## Development
 
 ```bash
 pnpm install
-pnpm build         # compila tudo (turbo cache)
-pnpm dev           # tsc --watch em paralelo + Vite no dashboard
+pnpm build         # builds everything (turbo caches)
+pnpm dev           # tsc --watch in parallel + Vite dashboard
 pnpm typecheck
-pnpm pack:all      # gera tarballs em dist-packs/ para instalação externa
+pnpm pack:all      # generates tarballs in dist-packs/ for external use
 ```
 
-Para mexer só na UI:
+To work on just the UI:
 
 ```bash
 pnpm --filter @sysko/dashboard dev
 ```
 
-Vite roda em `:5173` com proxy WS para `:9999` — você precisa também rodar um exemplo (ex.: `pnpm --filter example-express-app start`) para ter o transport em `:9999`.
+Vite runs on `:5173` and proxies WebSocket to `:9999`, so you also need an example running (e.g. `pnpm --filter example-express-app start`) to have a transport on `:9999`.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on the dev workflow, commit style, and PR process.
 
 ---
 
 ## Examples
 
-- [`examples/express-app`](examples/express-app/) — Express 4 com plugin
-- [`examples/fastify-app`](examples/fastify-app/) — Fastify 5 com plugin
+- [`examples/express-app`](examples/express-app/) — Express 4 with route template plugin
+- [`examples/fastify-app`](examples/fastify-app/) — Fastify 5 with route template plugin
 
-Cada example tem `pnpm start` (sobe o app) e `pnpm test` (dispara tráfego em todas as rotas, mostra resumo). Os spans aparecem no dashboard em `:9999` em tempo real.
+Each example has `pnpm start` (boots the app) and `pnpm test` (fires traffic across every route and prints a summary). The spans show up live on the `:9999` dashboard.
 
 ---
 
 ## Contributing
 
-Issues e PRs bem-vindos. Algumas dicas:
+PRs and issues are welcome. A few quick tips:
 
-- Comentários em código só quando o *porquê* não é óbvio — nomes de identificadores já devem dizer o *quê*
-- Para mudanças visuais no dashboard, valide manualmente no browser. Backend tests não capturam regressões visuais
-- TypeScript estrito (`strict: true`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
-- Não adicione dependências ao `@sysko/core` sem necessidade clara — esse é o package que o usuário final instala
-- Veja o [ROADMAP](ROADMAP.md) para o que tá planejado e o que **não** vamos fazer (anti-roadmap)
+- Comment in code only when the *why* is non-obvious — well-named identifiers already say *what*
+- For dashboard visual changes, validate manually in the browser. Backend tests don't catch visual regressions
+- Strict TypeScript (`strict: true`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
+- Don't add dependencies to `@sysko/core` without a clear need — that's the package consumers install
+- See the [ROADMAP](ROADMAP.md) for what's planned and the **anti-roadmap** for what we explicitly **won't** do
+
+Full guidelines in [CONTRIBUTING.md](CONTRIBUTING.md). By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
 ## License
 
-MIT — veja [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

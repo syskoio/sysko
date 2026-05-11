@@ -14,16 +14,19 @@ import { CompareBanner } from "./components/CompareBanner";
 import { SystemTab } from "./components/SystemTab";
 import { AlertsTab } from "./components/AlertsTab";
 import { ErrorsTab } from "./components/ErrorsTab";
+import { LoginScreen } from "./components/LoginScreen";
 import { useSpans } from "./lib/useSpans";
 import { useErrors } from "./lib/useErrors";
 import { useFilters } from "./lib/useFilters";
 import { useKeyboard } from "./lib/useKeyboard";
 import { useHashRoute } from "./lib/useHashRoute";
+import { useAuth } from "./lib/useAuth";
 
 const PAGE_SIZE = 50;
 
 export function App(): React.ReactElement {
-  const { spans, rootSpans, metrics, alerts, state, isNew, clear, paused, togglePause, getTrace } = useSpans();
+  const auth = useAuth();
+  const { spans, rootSpans, metrics, alerts, state, isNew, clear, paused, togglePause, getTrace } = useSpans(auth.password);
   const filters = useFilters();
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [compareId, setCompareId] = useState<string | undefined>(undefined);
@@ -174,6 +177,10 @@ export function App(): React.ReactElement {
     }
     return set.size;
   }, [rootSpans]);
+
+  if (!auth.loading && auth.passwordRequired && auth.password === null) {
+    return <LoginScreen error={auth.error} onLogin={auth.login} />;
+  }
 
   const showDetail = tab === "spans" && !!selected;
   const showCompare = tab === "spans" && !!selected && !!compare;

@@ -17,7 +17,7 @@ export interface UseSpansResult {
   alerts: AlertFired[];
 }
 
-export function useSpans(): UseSpansResult {
+export function useSpans(password: string | null = null): UseSpansResult {
   const [spans, setSpans] = useState<Span[]>([]);
   const [metrics, setMetrics] = useState<MetricSample[]>([]);
   const [alerts, setAlerts] = useState<AlertFired[]>([]);
@@ -42,7 +42,8 @@ export function useSpans(): UseSpansResult {
 
   useEffect(() => {
     const proto = location.protocol === "https:" ? "wss://" : "ws://";
-    const ws = new WebSocket(`${proto}${location.host}/_sysko/ws`);
+    const qs = password !== null ? `?pw=${btoa(password)}` : "";
+    const ws = new WebSocket(`${proto}${location.host}/_sysko/ws${qs}`);
     ws.addEventListener("open", () => setState("connected"));
     ws.addEventListener("close", () => setState("disconnected"));
     ws.addEventListener("message", (ev) => {
@@ -71,7 +72,7 @@ export function useSpans(): UseSpansResult {
       }
     });
     return () => ws.close();
-  }, []);
+  }, [password]);
 
   const rootSpans = spans.filter((s) => s.parentSpanId === undefined);
 

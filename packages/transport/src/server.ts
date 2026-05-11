@@ -59,12 +59,44 @@ function checkBasicAuth(req: IncomingMessage, password: string): boolean {
   return decoded.slice(colonIdx + 1) === password;
 }
 
+function checkWsAuth(req: IncomingMessage, password: string): boolean {
+  if (checkBasicAuth(req, password)) return true;
+  const qs = (req.url ?? "").split("?")[1] ?? "";
+  const params = new URLSearchParams(qs);
+  const pw = params.get("pw");
+  return pw !== null && Buffer.from(pw, "base64").toString("utf8") === password;
+}
+
 function rejectUnauthorized(res: ServerResponse): void {
-  res.writeHead(401, {
-    "WWW-Authenticate": 'Basic realm="sysko dashboard"',
-    "content-type": "text/plain",
+  res.writeHead(401, { "content-type": "application/json" });
+  res.end(JSON.stringify({ error: "unauthorized" }));
+}
+
+function handleMeta(res: ServerResponse, passwordRequired: boolean): void {
+  res.writeHead(200, { "content-type": "application/json" });
+  res.end(JSON.stringify({ passwordRequired }));
+}
+
+function handleAuthCheck(req: IncomingMessage, res: ServerResponse, password: string): void {
+  req.setEncoding("utf8");
+  const chunks: string[] = [];
+  req.on("data", (chunk: string) => chunks.push(chunk));
+  req.on("end", () => {
+    try {
+      const body = JSON.parse(chunks.join("")) as { password?: unknown };
+      if (body.password === password) {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({ ok: true }));
+      } else {
+        res.writeHead(401, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "invalid password" }));
+      }
+    } catch {
+      res.writeHead(400);
+      res.end();
+    }
   });
-  res.end("Unauthorized");
+  req.on("error", () => { res.writeHead(500); res.end(); });
 }
 
 export function createTransport(options: TransportOptions): Transport {
@@ -147,15 +179,31 @@ export function createTransport(options: TransportOptions): Transport {
   }
 
   function onRequest(req: IncomingMessage, res: ServerResponse): void {
+    const url = req.url ?? "/";
+
+    // Unauthenticated endpoints — must come before the auth gate.
+    if (req.method === "GET" && url === "/_sysko/meta") {
+      handleMeta(res, password !== undefined);
+      return;
+    }
+    if (req.method === "POST" && url === "/_sysko/auth") {
+      if (password === undefined) {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({ ok: true }));
+      } else {
+        handleAuthCheck(req, res, password);
+      }
+      return;
+    }
+
     if (password && !checkBasicAuth(req, password)) {
       rejectUnauthorized(res);
       return;
     }
-    if (ingest && req.method === "POST" && req.url === "/v1/spans") {
+    if (ingest && req.method === "POST" && url === "/v1/spans") {
       handleIngest(req, res);
       return;
     }
-    const url = req.url ?? "/";
     void handleStatic(url, res);
   }
 
@@ -209,8 +257,8 @@ export function createTransport(options: TransportOptions): Transport {
           socket.destroy();
           return;
         }
-        if (password && !checkBasicAuth(req, password)) {
-          socket.write("HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic realm=\"sysko dashboard\"\r\n\r\n");
+        if (password && !checkWsAuth(req, password)) {
+          socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
           socket.destroy();
           return;
         }

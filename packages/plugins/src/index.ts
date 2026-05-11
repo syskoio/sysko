@@ -8,3 +8,7 @@ export { instrumentBullMQQueue, instrumentBullMQProcessor } from "./bullmq.js";
 export type { BullMQJob, BullMQQueueLike } from "./bullmq.js";
 export { instrumentMongoose } from "./mongoose.js";
 export type { InstrumentMongooseOptions } from "./mongoose.js";
+export { instrumentSequelize } from "./sequelize.js";
+export type { SequelizeLike } from "./sequelize.js";
+export { instrumentTypeORM } from "./typeorm.js";
+export type { TypeORMDataSourceLike, TypeORMQueryRunnerLike } from "./typeorm.js";

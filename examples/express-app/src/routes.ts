@@ -6,6 +6,8 @@ import { instrumentAxios } from "@sysko/plugins/axios";
 import { instrumentBullMQQueue, instrumentBullMQProcessor } from "@sysko/plugins/bullmq";
 import type { BullMQJob } from "@sysko/plugins/bullmq";
 import { instrumentMongoose } from "@sysko/plugins/mongoose";
+import { instrumentSequelize } from "@sysko/plugins/sequelize";
+import { instrumentTypeORM } from "@sysko/plugins/typeorm";
 
 // ─── Redis stub ────────────────────────────────────────────────────────────────
 // In-memory store that satisfies instrumentRedis's structural contract.
@@ -113,6 +115,48 @@ async function runMongoOp(op: string, delayMs: number): Promise<void> {
   await new Promise((r) => setTimeout(r, delayMs));
   for (const fn of _postHooks.get(op) ?? []) fn.call(ctx, {}, noop);
 }
+
+// ─── Sequelize stub ────────────────────────────────────────────────────────────
+// instrumentSequelize mutates .query() in-place, then we use seqStub directly.
+const _seqRows = [
+  { id: 1, name: "alice", email: "alice@example.com" },
+  { id: 2, name: "bob", email: "bob@example.com" },
+];
+
+const seqStub = {
+  getDialect: () => "postgres",
+  query: async (sql: string): Promise<unknown> => {
+    await new Promise((r) => setTimeout(r, 8 + Math.random() * 12));
+    const op = sql.trimStart().toUpperCase();
+    if (op.startsWith("SELECT")) return [_seqRows, []];
+    if (op.startsWith("INSERT")) return [{ affectedRows: 1 }];
+    if (op.startsWith("UPDATE")) return [{ affectedRows: 1 }];
+    if (op.startsWith("DELETE")) return [{ affectedRows: 1 }];
+    return [[], []];
+  },
+};
+instrumentSequelize(seqStub);
+
+// ─── TypeORM stub ──────────────────────────────────────────────────────────────
+// instrumentTypeORM patches createQueryRunner() in-place; create runners via
+// typeormStub.createQueryRunner() to get instrumented instances.
+const _typeormRows = [{ id: 1, title: "post one", published: true }];
+
+const typeormStub = {
+  options: { type: "mysql" },
+  createQueryRunner: () => ({
+    query: async (sql: string, _parameters?: unknown[]): Promise<unknown> => {
+      await new Promise((r) => setTimeout(r, 10 + Math.random() * 15));
+      const op = sql.trimStart().toUpperCase();
+      if (op.startsWith("SELECT")) return _typeormRows;
+      if (op.startsWith("INSERT")) return { insertId: 3, affectedRows: 1 };
+      if (op.startsWith("UPDATE")) return { affectedRows: 1 };
+      if (op.startsWith("DELETE")) return { affectedRows: 1 };
+      return [];
+    },
+  }),
+};
+instrumentTypeORM(typeormStub);
 
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -257,5 +301,31 @@ export function defineRoutes(app: Express, sysko: Sysko): void {
   app.get("/plugins/mongoose/save", async (_req, res) => {
     await runMongoOp("save", 10 + Math.random() * 15);
     res.json({ ok: true, id: 2, name: "bob" });
+  });
+
+  // Sequelize — SELECT (db.system: postgres)
+  app.get("/plugins/sequelize/find", async (_req, res) => {
+    const [rows] = await seqStub.query("SELECT id, name, email FROM users WHERE active = true LIMIT 10") as [unknown[]];
+    res.json({ dialect: seqStub.getDialect(), rows });
+  });
+
+  // Sequelize — INSERT (db.system: postgres)
+  app.get("/plugins/sequelize/insert", async (_req, res) => {
+    await seqStub.query("INSERT INTO users (name, email) VALUES ('carol', 'carol@example.com')");
+    res.json({ ok: true, dialect: seqStub.getDialect() });
+  });
+
+  // TypeORM — SELECT via instrumented QueryRunner (db.system: mysql)
+  app.get("/plugins/typeorm/find", async (_req, res) => {
+    const runner = typeormStub.createQueryRunner();
+    const rows = await runner.query("SELECT id, title, published FROM posts WHERE published = 1 LIMIT 10");
+    res.json({ dbType: typeormStub.options.type, rows });
+  });
+
+  // TypeORM — INSERT via instrumented QueryRunner (db.system: mysql)
+  app.get("/plugins/typeorm/insert", async (_req, res) => {
+    const runner = typeormStub.createQueryRunner();
+    const result = await runner.query("INSERT INTO posts (title, published) VALUES (?, ?)", ["new post", true]);
+    res.json({ ok: true, dbType: typeormStub.options.type, result });
   });
 }

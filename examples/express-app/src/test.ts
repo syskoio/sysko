@@ -44,6 +44,10 @@ const CASES: RouteCase[] = [
   { method: "GET", path: "/plugins/bullmq/process" },
   { method: "GET", path: "/plugins/mongoose/find" },
   { method: "GET", path: "/plugins/mongoose/save" },
+  { method: "GET", path: "/plugins/sequelize/find" },
+  { method: "GET", path: "/plugins/sequelize/insert" },
+  { method: "GET", path: "/plugins/typeorm/find" },
+  { method: "GET", path: "/plugins/typeorm/insert" },
   { method: "GET", path: "/healthz", redacted: true },
   { method: "GET", path: "/internal/secret", redacted: true },
 ];

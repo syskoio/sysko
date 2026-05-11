@@ -38,6 +38,14 @@
     "./mongoose": {
       "types": "./dist/mongoose.d.ts",
       "import": "./dist/mongoose.js"
+    },
+    "./sequelize": {
+      "types": "./dist/sequelize.d.ts",
+      "import": "./dist/sequelize.js"
+    },
+    "./typeorm": {
+      "types": "./dist/typeorm.d.ts",
+      "import": "./dist/typeorm.js"
     }
   },
   "files": ["dist", "src"],

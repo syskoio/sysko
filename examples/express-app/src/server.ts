@@ -5,6 +5,9 @@ import { defineRoutes } from "./routes.js";
 
 const sysko = await init({
   serviceName: "example-express",
+  dashboard: {
+    password: process.env["SYSKO_PASSWORD"] ?? "MYSECRET",
+  },
   redact: {
     queryParams: ["token", "apiKey"],
     paths: ["/healthz", "/internal/*"],

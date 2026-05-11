@@ -24,6 +24,8 @@ export interface TransportOptions {
   password?: string;
   metrics?: MetricsSource;
   alerts?: AlertsSource;
+  /** Accept remote spans via POST /v1/spans (used by the collector). */
+  ingest?: boolean;
 }
 
 export interface Transport {
@@ -73,6 +75,7 @@ export function createTransport(options: TransportOptions): Transport {
   const password = options.password;
   const metrics = options.metrics;
   const alerts = options.alerts;
+  const ingest = options.ingest ?? false;
 
   let httpServer: Server | undefined;
   let wss: WebSocketServer | undefined;
@@ -120,9 +123,36 @@ export function createTransport(options: TransportOptions): Transport {
     }
   }
 
+  function handleIngest(req: IncomingMessage, res: ServerResponse): void {
+    req.setEncoding("utf8");
+    const chunks: string[] = [];
+    req.on("data", (chunk: string) => chunks.push(chunk));
+    req.on("end", () => {
+      try {
+        const spans = JSON.parse(chunks.join("")) as Span[];
+        for (const span of spans) {
+          store.push(span);
+        }
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({ ok: true, received: spans.length }));
+      } catch {
+        res.writeHead(400, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "invalid payload" }));
+      }
+    });
+    req.on("error", () => {
+      res.writeHead(500);
+      res.end();
+    });
+  }
+
   function onRequest(req: IncomingMessage, res: ServerResponse): void {
     if (password && !checkBasicAuth(req, password)) {
       rejectUnauthorized(res);
+      return;
+    }
+    if (ingest && req.method === "POST" && req.url === "/v1/spans") {
+      handleIngest(req, res);
       return;
     }
     const url = req.url ?? "/";

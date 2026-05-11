@@ -8,6 +8,7 @@ export interface Filters {
   methods: Set<string>;
   statusBucket: StatusBucket;
   minDuration: number;
+  service: string | null;
 }
 
 export const INITIAL_FILTERS: Filters = {
@@ -15,6 +16,7 @@ export const INITIAL_FILTERS: Filters = {
   methods: new Set(),
   statusBucket: "all",
   minDuration: 0,
+  service: null,
 };
 
 export function isEmpty(f: Filters): boolean {
@@ -22,7 +24,8 @@ export function isEmpty(f: Filters): boolean {
     f.search === "" &&
     f.methods.size === 0 &&
     f.statusBucket === "all" &&
-    f.minDuration === 0
+    f.minDuration === 0 &&
+    f.service === null
   );
 }
 
@@ -46,6 +49,7 @@ export function applyFilters(spans: Span[], f: Filters): Span[] {
     if (f.statusBucket === "5xx" && !(code >= 500)) return false;
     if (f.statusBucket === "error" && s.status !== "error") return false;
     if (f.minDuration > 0 && s.duration < f.minDuration) return false;
+    if (f.service !== null && String(s.attributes["service.name"] ?? "") !== f.service) return false;
     if (search.length > 0) {
       const path = pathOf(s).toLowerCase();
       if (!path.includes(search)) return false;
@@ -60,6 +64,7 @@ export interface UseFiltersResult {
   toggleMethod(m: string): void;
   setStatusBucket(b: StatusBucket): void;
   setMinDuration(v: number): void;
+  setService(s: string | null): void;
   reset(): void;
   apply(spans: Span[]): Span[];
 }
@@ -83,6 +88,7 @@ export function useFilters(): UseFiltersResult {
       }),
     setStatusBucket: (b) => setFilters((f) => ({ ...f, statusBucket: b })),
     setMinDuration: (v) => setFilters((f) => ({ ...f, minDuration: v })),
+    setService: (s) => setFilters((f) => ({ ...f, service: s })),
     reset: () => setFilters(INITIAL_FILTERS),
     apply,
   };

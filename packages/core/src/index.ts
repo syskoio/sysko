@@ -7,6 +7,7 @@ import { activateHttpInstrumentation } from "./instrument-http.js";
 import { activateOutboundInstrumentation } from "./instrument-outbound.js";
 import { activateErrorInstrumentation } from "./instrument-errors.js";
 import { setActiveStore, setSamplingRate, setRateLimit, getActiveHandle } from "./span-factory.js";
+import { SpanExporter, type ExportOptions } from "./span-exporter.js";
 import { spanContext } from "./context.js";
 import { addSpanHook, clearSpanHooks, type SpanHook } from "./hooks.js";
 import { buildRedactHook, type RedactOptions } from "./redact.js";
@@ -26,6 +27,7 @@ export type {
   SpanLogLevel,
   RetentionOptions,
 } from "@sysko/storage";
+export type { ExportOptions } from "./span-exporter.js";
 export type { MetricSample } from "./metrics.js";
 export type { AlertRule, AlertFired } from "./alert-engine.js";
 export { getCurrentSpanId, getCurrentTraceId, getCurrentContext } from "./context.js";
@@ -65,6 +67,8 @@ export interface SyskoOptions {
   alerts?: AlertRule[];
   /** How often (ms) to evaluate alert rules. Default 30000. */
   alertCheckInterval?: number;
+  /** Forward spans to a remote Sysko collector in addition to local storage. */
+  export?: ExportOptions;
 }
 
 export interface Sysko {
@@ -120,7 +124,24 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
   const dashOpts = options.dashboard !== false ? (options.dashboard ?? {}) : undefined;
   const port = dashOpts?.port ?? DEFAULT_PORT;
   const host = dashOpts?.host ?? DEFAULT_HOST;
-  const deactivateOutbound = activateOutboundInstrumentation({ host, port });
+
+  // Build the list of endpoints to exclude from outbound instrumentation:
+  // the dashboard server and, if configured, the remote collector.
+  const outboundIgnores = [{ host, port }];
+  if (options.export) {
+    try {
+      const exportUrl = new URL(options.export.url);
+      const exportPort =
+        exportUrl.port !== ""
+          ? parseInt(exportUrl.port, 10)
+          : exportUrl.protocol === "https:" ? 443 : 80;
+      outboundIgnores.push({ host: exportUrl.hostname, port: exportPort });
+    } catch {
+      // malformed URL — skip ignore entry
+    }
+  }
+
+  const deactivateOutbound = activateOutboundInstrumentation(outboundIgnores);
 
   if (
     dashOpts &&
@@ -141,6 +162,13 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
     ? new AlertEngine(options.alerts, store, options.alertCheckInterval)
     : undefined;
   alertEngine?.start();
+
+  // Set up remote span exporter if configured.
+  let exporter: SpanExporter | undefined;
+  if (options.export) {
+    exporter = new SpanExporter(options.export);
+    store.subscribe((span) => exporter!.enqueue(span));
+  }
 
   let transport: Transport | undefined;
   let dashboardUrl: string | undefined;
@@ -186,6 +214,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
       setRateLimit(0);
       metricsCollector.stop();
       alertEngine?.stop();
+      exporter?.stop();
       await transport?.stop();
       store.close?.();
       active = undefined;

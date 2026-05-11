@@ -154,6 +154,15 @@ export function App(): React.ReactElement {
     onTogglePause: togglePause,
   });
 
+  const services = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of spans) {
+      const svc = s.attributes["service.name"];
+      if (svc) set.add(String(svc));
+    }
+    return [...set].sort();
+  }, [spans]);
+
   const endpointsCount = useMemo(() => {
     const set = new Set<string>();
     for (const s of rootSpans) {
@@ -189,6 +198,7 @@ export function App(): React.ReactElement {
           controls={filters}
           resultsCount={filteredRoots.length}
           totalCount={rootSpans.length}
+          services={services}
         />
       )}
 

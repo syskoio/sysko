@@ -10,7 +10,7 @@ export interface OutboundIgnore {
 
 let patched = false;
 let active = false;
-let ignoreEndpoint: OutboundIgnore | undefined;
+let ignoreEndpoints: OutboundIgnore[] = [];
 
 // Builds a W3C traceparent header value from a span's internal UUID-based IDs.
 // traceId (UUID, 36 chars) → 32-hex; spanId (UUID, 36 chars) → first 16 hex.
@@ -77,13 +77,14 @@ function normalize(
   };
 }
 
+function sameHost(a: string, b: string): boolean {
+  if (a === b) return true;
+  const local = new Set(["127.0.0.1", "localhost", "::1"]);
+  return local.has(a) && local.has(b);
+}
+
 function shouldIgnore(host: string, port: number): boolean {
-  if (!ignoreEndpoint) return false;
-  const sameHost =
-    host === ignoreEndpoint.host ||
-    (ignoreEndpoint.host === "127.0.0.1" && (host === "localhost" || host === "::1")) ||
-    (ignoreEndpoint.host === "localhost" && (host === "127.0.0.1" || host === "::1"));
-  return sameHost && port === ignoreEndpoint.port;
+  return ignoreEndpoints.some((ie) => sameHost(host, ie.host) && port === ie.port);
 }
 
 function wrapRequest(protocol: "http:" | "https:", original: RequestFn): RequestFn {
@@ -213,11 +214,12 @@ function ensurePatched(): void {
   }
 }
 
-export function activateOutboundInstrumentation(ignore?: OutboundIgnore): () => void {
+export function activateOutboundInstrumentation(ignore: OutboundIgnore[] = []): () => void {
+  ignoreEndpoints = ignore;
   ensurePatched();
-  if (ignore) ignoreEndpoint = ignore;
   active = true;
   return () => {
     active = false;
+    ignoreEndpoints = [];
   };
 }

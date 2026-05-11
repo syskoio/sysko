@@ -24,6 +24,7 @@ export interface FilterBarProps {
   controls: UseFiltersResult;
   resultsCount: number;
   totalCount: number;
+  services: string[];
 }
 
 function hasActiveFilters(f: Filters): boolean {
@@ -31,12 +32,13 @@ function hasActiveFilters(f: Filters): boolean {
     f.search !== "" ||
     f.methods.size > 0 ||
     f.statusBucket !== "all" ||
-    f.minDuration > 0
+    f.minDuration > 0 ||
+    f.service !== null
   );
 }
 
 export const FilterBar = forwardRef<HTMLInputElement, FilterBarProps>(
-  function FilterBar({ controls, resultsCount, totalCount }, ref): React.ReactElement {
+  function FilterBar({ controls, resultsCount, totalCount, services }, ref): React.ReactElement {
     const { filters } = controls;
     const active = hasActiveFilters(filters);
 
@@ -122,6 +124,41 @@ export const FilterBar = forwardRef<HTMLInputElement, FilterBarProps>(
             );
           })}
         </div>
+
+        {services.length > 1 && (
+          <>
+            <div className="h-4 w-px bg-zinc-800" />
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => controls.setService(null)}
+                className={
+                  "px-1.5 py-0.5 rounded-md text-[10.5px] font-mono font-medium transition-colors " +
+                  (filters.service === null
+                    ? "bg-zinc-800 text-zinc-200"
+                    : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900")
+                }
+              >
+                all
+              </button>
+              {services.map((svc) => (
+                <button
+                  key={svc}
+                  type="button"
+                  onClick={() => controls.setService(svc)}
+                  className={
+                    "px-1.5 py-0.5 rounded-md text-[10.5px] font-mono font-medium transition-colors " +
+                    (filters.service === svc
+                      ? "bg-zinc-800 text-lime-300"
+                      : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900")
+                  }
+                >
+                  {svc}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         <div className="flex-1" />
 

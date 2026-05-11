@@ -71,6 +71,25 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
+  packages/collector:
+    dependencies:
+      '@sysko/dashboard':
+        specifier: workspace:*
+        version: link:../dashboard
+      '@sysko/storage':
+        specifier: workspace:*
+        version: link:../storage
+      '@sysko/transport':
+        specifier: workspace:*
+        version: link:../transport
+    devDependencies:
+      rimraf:
+        specifier: ^6.0.1
+        version: 6.1.3
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
   packages/core:
     dependencies:
       '@sysko/dashboard':

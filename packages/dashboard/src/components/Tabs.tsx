@@ -1,14 +1,15 @@
-import { ListTree, BarChart3, BarChartHorizontal, Cpu } from "lucide-react";
+import { ListTree, BarChart3, BarChartHorizontal, Cpu, Bell } from "lucide-react";
 
-export type TabKey = "spans" | "endpoints" | "distribution" | "system";
+export type TabKey = "spans" | "endpoints" | "distribution" | "system" | "alerts";
 
 export interface TabsProps {
   value: TabKey;
   onChange: (k: TabKey) => void;
   endpointsCount: number;
+  alertsCount: number;
 }
 
-export function Tabs({ value, onChange, endpointsCount }: TabsProps): React.ReactElement {
+export function Tabs({ value, onChange, endpointsCount, alertsCount }: TabsProps): React.ReactElement {
   return (
     <div className="border-b border-zinc-900 px-5 flex items-center gap-1 bg-zinc-950">
       <Tab active={value === "spans"} onClick={() => onChange("spans")}>
@@ -31,6 +32,15 @@ export function Tabs({ value, onChange, endpointsCount }: TabsProps): React.Reac
       <Tab active={value === "system"} onClick={() => onChange("system")}>
         <Cpu className="h-3.5 w-3.5" />
         system
+      </Tab>
+      <Tab active={value === "alerts"} onClick={() => onChange("alerts")}>
+        <Bell className="h-3.5 w-3.5" />
+        alerts
+        {alertsCount > 0 && (
+          <span className="ml-1 text-[10px] font-mono tabular-nums bg-red-500/20 text-red-400 px-1 rounded">
+            {alertsCount}
+          </span>
+        )}
       </Tab>
     </div>
   );

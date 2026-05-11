@@ -11,6 +11,11 @@ export interface MetricsSource {
   subscribe(listener: (sample: unknown) => void): () => void;
 }
 
+export interface AlertsSource {
+  list(): unknown[];
+  subscribe(listener: (alert: unknown) => void): () => void;
+}
+
 export interface TransportOptions {
   port?: number;
   host?: string;
@@ -18,6 +23,7 @@ export interface TransportOptions {
   staticDir?: string;
   password?: string;
   metrics?: MetricsSource;
+  alerts?: AlertsSource;
 }
 
 export interface Transport {
@@ -66,6 +72,7 @@ export function createTransport(options: TransportOptions): Transport {
   const staticDir = options.staticDir ? resolve(options.staticDir) : undefined;
   const password = options.password;
   const metrics = options.metrics;
+  const alerts = options.alerts;
 
   let httpServer: Server | undefined;
   let wss: WebSocketServer | undefined;
@@ -143,9 +150,18 @@ export function createTransport(options: TransportOptions): Transport {
       });
     }
 
+    let offAlerts: (() => void) | undefined;
+    if (alerts) {
+      send(ws, { type: "alerts-history", alerts: alerts.list() });
+      offAlerts = alerts.subscribe((alert) => {
+        send(ws, { type: "alert", alert });
+      });
+    }
+
     const cleanup = (): void => {
       offSpans();
       offMetrics?.();
+      offAlerts?.();
     };
     ws.on("close", cleanup);
     ws.on("error", cleanup);

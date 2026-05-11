@@ -7,9 +7,10 @@ export interface HeaderProps {
   onTogglePause: () => void;
   onClear: () => void;
   spanCount: number;
+  alertCount: number;
 }
 
-export function Header({ state, paused, onTogglePause, onClear, spanCount }: HeaderProps): React.ReactElement {
+export function Header({ state, paused, onTogglePause, onClear, spanCount, alertCount }: HeaderProps): React.ReactElement {
   return (
     <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur sticky top-0 z-10">
       <div className="flex items-center justify-between px-5 h-12">
@@ -27,6 +28,12 @@ export function Header({ state, paused, onTogglePause, onClear, spanCount }: Hea
         </div>
 
         <div className="flex items-center gap-1.5">
+          {alertCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-mono text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full mr-1">
+              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
+              {alertCount} {alertCount === 1 ? "alert" : "alerts"}
+            </span>
+          )}
           <span className="text-[11px] text-zinc-500 font-mono mr-2 tabular-nums">
             {spanCount} {spanCount === 1 ? "span" : "spans"}
           </span>

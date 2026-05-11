@@ -48,10 +48,20 @@ export interface MetricSample {
   gcDuration: number;
 }
 
+export interface AlertFired {
+  ts: number;
+  ruleName: string;
+  type: "p95" | "errorRate" | "spanCount";
+  value: number;
+  threshold: number;
+}
+
 export type WsMessage =
   | { type: "history"; spans: Span[] }
   | { type: "span"; span: Span }
   | { type: "metrics-history"; samples: MetricSample[] }
-  | { type: "metric"; sample: MetricSample };
+  | { type: "metric"; sample: MetricSample }
+  | { type: "alerts-history"; alerts: AlertFired[] }
+  | { type: "alert"; alert: AlertFired };
 
 export type ConnState = "connecting" | "connected" | "disconnected";

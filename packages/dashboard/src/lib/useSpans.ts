@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import type { ConnState, MetricSample, Span, WsMessage } from "./types";
+import type { AlertFired, ConnState, MetricSample, Span, WsMessage } from "./types";
 
 const MAX_METRICS = 720; // 1h at 5s interval
+const MAX_ALERTS = 200;
 
 export interface UseSpansResult {
   spans: Span[];
@@ -13,11 +14,13 @@ export interface UseSpansResult {
   togglePause: () => void;
   getTrace: (traceId: string) => Span[];
   metrics: MetricSample[];
+  alerts: AlertFired[];
 }
 
 export function useSpans(): UseSpansResult {
   const [spans, setSpans] = useState<Span[]>([]);
   const [metrics, setMetrics] = useState<MetricSample[]>([]);
+  const [alerts, setAlerts] = useState<AlertFired[]>([]);
   const [state, setState] = useState<ConnState>("connecting");
   const [paused, setPaused] = useState(false);
   const recentlyAdded = useRef<Set<string>>(new Set());
@@ -50,6 +53,10 @@ export function useSpans(): UseSpansResult {
         setMetrics(msg.samples);
       } else if (msg.type === "metric") {
         setMetrics((prev) => [...prev.slice(-(MAX_METRICS - 1)), msg.sample]);
+      } else if (msg.type === "alerts-history") {
+        setAlerts(msg.alerts);
+      } else if (msg.type === "alert") {
+        setAlerts((prev) => [...prev.slice(-(MAX_ALERTS - 1)), msg.alert]);
       } else if (msg.type === "span") {
         if (pausedRef.current) {
           bufferRef.current.push(msg.span);
@@ -72,6 +79,7 @@ export function useSpans(): UseSpansResult {
     spans,
     rootSpans,
     metrics,
+    alerts,
     state,
     isNew: (id) => recentlyAdded.current.has(id),
     clear: () => setSpans([]),

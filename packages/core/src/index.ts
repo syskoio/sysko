@@ -12,6 +12,7 @@ import { addSpanHook, clearSpanHooks, type SpanHook } from "./hooks.js";
 import { buildRedactHook, type RedactOptions } from "./redact.js";
 import { MetricsCollector, type MetricSample } from "./metrics.js";
 import { activateConsoleInstrumentation } from "./instrument-console.js";
+import { AlertEngine, type AlertRule, type AlertFired } from "./alert-engine.js";
 
 export type {
   Span,
@@ -26,6 +27,7 @@ export type {
   RetentionOptions,
 } from "@sysko/storage";
 export type { MetricSample } from "./metrics.js";
+export type { AlertRule, AlertFired } from "./alert-engine.js";
 export { getCurrentSpanId, getCurrentTraceId, getCurrentContext } from "./context.js";
 export {
   startSpan,
@@ -60,6 +62,7 @@ export interface SyskoOptions {
   redact?: RedactOptions;
   /** Max spans stored per second. Excess spans are dropped. */
   rateLimit?: number;
+  alerts?: AlertRule[];
 }
 
 export interface Sysko {
@@ -132,6 +135,11 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
 
   metricsCollector.start();
 
+  const alertEngine = options.alerts && options.alerts.length > 0
+    ? new AlertEngine(options.alerts, store)
+    : undefined;
+  alertEngine?.start();
+
   let transport: Transport | undefined;
   let dashboardUrl: string | undefined;
   if (dashOpts) {
@@ -142,6 +150,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
       port,
       host,
       ...(dashOpts.password !== undefined ? { password: dashOpts.password } : {}),
+      ...(alertEngine !== undefined ? { alerts: alertEngine } : {}),
     });
     const started = await transport.start();
     dashboardUrl = started.url;
@@ -174,6 +183,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
       setSamplingRate(1);
       setRateLimit(0);
       metricsCollector.stop();
+      alertEngine?.stop();
       await transport?.stop();
       store.close?.();
       active = undefined;

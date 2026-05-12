@@ -1,13 +1,13 @@
 name: Publish to npm
 
-# Triggered automatically by release-please when it creates a release.
-# release-please bumps all package versions and tags before this runs,
-# so every @syskoio/* package will always have a version that doesn't exist
-# on the registry yet.
+# Triggered by tags created by release-please (e.g. core-v0.2.0).
+# Using push.tags instead of release.created because GITHUB_TOKEN-created
+# releases do not trigger subsequent workflow runs.
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - "*-v*"
 
 permissions:
   contents: read

@@ -1,13 +1,16 @@
 {
   "name": "@syskoio/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CLI scaffolding tool — sysko init wires up tracing into your Node.js app in seconds",
   "license": "MIT",
   "type": "module",
   "bin": {
     "sysko": "./dist/index.js"
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",

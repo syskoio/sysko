@@ -1,4 +1,4 @@
-import { Activity, Pause, Play, Trash2, BarChart3, ListTree, BarChartHorizontal, Cpu, Bell, AlertTriangle, Settings } from "lucide-react";
+import { Pause, Play, Trash2, BarChart3, ListTree, BarChartHorizontal, Cpu, Bell, AlertTriangle, Settings } from "lucide-react";
 import type { ConnState } from "../lib/types";
 
 export type SidebarView = "endpoints" | "spans" | "distribution" | "dashboard" | "alerts" | "errors" | "settings";
@@ -31,10 +31,7 @@ export function Sidebar({
       <div className="px-4 py-3 border-b border-zinc-900 shrink-0">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
-            <div className="relative">
-              <div className="absolute inset-0 bg-lime-300/30 blur-md rounded-full" />
-              <Activity className="relative h-3.5 w-3.5 text-lime-300" strokeWidth={2.5} />
-            </div>
+            <img src="/logo.png" alt="sysko" className="h-5 w-5 object-contain" />
             <span className="text-[13px] font-semibold tracking-tight">sysko</span>
           </div>
           <div className="flex items-center gap-0.5">

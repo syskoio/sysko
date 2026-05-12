@@ -1,8 +1,8 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { RingBuffer, SqliteStore, type SpanStore, type RetentionOptions } from "@sysko/storage";
-import { createTransport, type Transport } from "@sysko/transport";
-import { dashboardAssetsPath } from "@sysko/dashboard";
+import { RingBuffer, SqliteStore, type SpanStore, type RetentionOptions } from "@syskoio/storage";
+import { createTransport, type Transport } from "@syskoio/transport";
+import { dashboardAssetsPath } from "@syskoio/dashboard";
 import { activateHttpInstrumentation } from "./instrument-http.js";
 import { activateOutboundInstrumentation } from "./instrument-outbound.js";
 import { activateErrorInstrumentation } from "./instrument-errors.js";
@@ -26,7 +26,7 @@ export type {
   SpanLog,
   SpanLogLevel,
   RetentionOptions,
-} from "@sysko/storage";
+} from "@syskoio/storage";
 export type { ExportOptions } from "./span-exporter.js";
 export type { MetricSample } from "./metrics.js";
 export type { AlertRule, AlertFired } from "./alert-engine.js";

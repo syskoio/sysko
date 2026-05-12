@@ -1,4 +1,4 @@
-import { startSpan, withSpan } from "@sysko/core";
+import { startSpan, withSpan } from "@syskoio/core";
 
 export interface BullMQJob {
   id?: string;

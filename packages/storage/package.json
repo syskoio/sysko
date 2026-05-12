@@ -1,5 +1,5 @@
 {
-  "name": "@sysko/storage",
+  "name": "@syskoio/storage",
   "version": "0.0.1",
   "description": "Camada de persistência do Sysko Observe (in-memory inicialmente)",
   "license": "MIT",

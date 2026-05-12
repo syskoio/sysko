@@ -1,4 +1,4 @@
-import type { Span, SpanStore } from "@sysko/storage";
+import type { Span, SpanStore } from "@syskoio/storage";
 
 export interface AlertRule {
   name: string;

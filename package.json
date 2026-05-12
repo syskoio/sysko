@@ -23,7 +23,7 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean && rimraf node_modules",
-    "pack:all": "turbo run build && rimraf dist-packs && pnpm -r --filter \"@sysko/*\" exec pnpm pack --pack-destination ../../dist-packs"
+    "pack:all": "turbo run build && rimraf dist-packs && pnpm -r --filter \"@syskoio/*\" exec pnpm pack --pack-destination ../../dist-packs"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

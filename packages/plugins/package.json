@@ -1,5 +1,5 @@
 {
-  "name": "@sysko/plugins",
+  "name": "@syskoio/plugins",
   "version": "0.0.1",
   "description": "Plugins de integração do Sysko Observe (express, fastify, http, etc)",
   "license": "MIT",
@@ -56,8 +56,8 @@
     "clean": "rimraf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
-    "@sysko/core": "workspace:*",
-    "@sysko/storage": "workspace:*"
+    "@syskoio/core": "workspace:*",
+    "@syskoio/storage": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",

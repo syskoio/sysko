@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize, resolve, sep } from "node:path";
 import { WebSocketServer, type WebSocket } from "ws";
-import type { Span, SpanStore } from "@sysko/storage";
+import type { Span, SpanStore } from "@syskoio/storage";
 import { INTERNAL_SERVER } from "./internal-marker.js";
 import { FALLBACK_HTML } from "./static-fallback.js";
 

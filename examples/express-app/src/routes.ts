@@ -1,15 +1,15 @@
 import type { Express } from "express";
-import { withSpan, type Sysko } from "@sysko/core";
+import { withSpan, type Sysko } from "@syskoio/core";
 import { randomUUID } from "node:crypto";
-import { instrumentRedis } from "@sysko/plugins/redis";
-import { instrumentAxios } from "@sysko/plugins/axios";
-import { instrumentBullMQQueue, instrumentBullMQProcessor } from "@sysko/plugins/bullmq";
-import type { BullMQJob } from "@sysko/plugins/bullmq";
-import { instrumentMongoose } from "@sysko/plugins/mongoose";
-import { instrumentSequelize } from "@sysko/plugins/sequelize";
-import { instrumentTypeORM } from "@sysko/plugins/typeorm";
-import { instrumentPrisma } from "@sysko/plugins/prisma";
-import type { PrismaMiddlewareParams } from "@sysko/plugins/prisma";
+import { instrumentRedis } from "@syskoio/plugins/redis";
+import { instrumentAxios } from "@syskoio/plugins/axios";
+import { instrumentBullMQQueue, instrumentBullMQProcessor } from "@syskoio/plugins/bullmq";
+import type { BullMQJob } from "@syskoio/plugins/bullmq";
+import { instrumentMongoose } from "@syskoio/plugins/mongoose";
+import { instrumentSequelize } from "@syskoio/plugins/sequelize";
+import { instrumentTypeORM } from "@syskoio/plugins/typeorm";
+import { instrumentPrisma } from "@syskoio/plugins/prisma";
+import type { PrismaMiddlewareParams } from "@syskoio/plugins/prisma";
 
 // ─── Redis stub ────────────────────────────────────────────────────────────────
 // In-memory store that satisfies instrumentRedis's structural contract.

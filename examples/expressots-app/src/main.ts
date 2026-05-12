@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { init } from "@sysko/core";
+import { init } from "@syskoio/core";
 import { App } from "./app.js";
 import { setSysko } from "./controllers/demo.controller.js";
 

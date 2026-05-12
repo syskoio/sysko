@@ -1,4 +1,4 @@
-import { getActiveHandle, getCurrentContext } from "@sysko/core";
+import { getActiveHandle, getCurrentContext } from "@syskoio/core";
 
 interface FastifyRouteOptions {
   url?: string | undefined;

@@ -1,5 +1,5 @@
-import { init } from "@sysko/core";
-import { instrumentExpress } from "@sysko/plugins/express";
+import { init } from "@syskoio/core";
+import { instrumentExpress } from "@syskoio/plugins/express";
 import express from "express";
 import { defineRoutes } from "./routes.js";
 

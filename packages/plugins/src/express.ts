@@ -1,4 +1,4 @@
-import { getCurrentContext, getActiveHandle } from "@sysko/core";
+import { getCurrentContext, getActiveHandle } from "@syskoio/core";
 
 interface ExpressLikeRequest {
   route?: { path?: string | RegExp };

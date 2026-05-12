@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { performance } from "node:perf_hooks";
-import type { Span, SpanAttributes, SpanError, SpanKind, SpanLog, SpanLogLevel, SpanStore } from "@sysko/storage";
+import type { Span, SpanAttributes, SpanError, SpanKind, SpanLog, SpanLogLevel, SpanStore } from "@syskoio/storage";
 import { spanContext, type SpanContext } from "./context.js";
 import { applyHooks } from "./hooks.js";
 

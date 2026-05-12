@@ -1,5 +1,5 @@
-import { init } from "@sysko/core";
-import { instrumentFastify } from "@sysko/plugins/fastify";
+import { init } from "@syskoio/core";
+import { instrumentFastify } from "@syskoio/plugins/fastify";
 import Fastify from "fastify";
 import { defineRoutes } from "./routes.js";
 

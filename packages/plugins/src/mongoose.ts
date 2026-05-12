@@ -1,5 +1,5 @@
-import { startSpan } from "@sysko/core";
-import type { SpanHandle } from "@sysko/core";
+import { startSpan } from "@syskoio/core";
+import type { SpanHandle } from "@syskoio/core";
 
 interface MongoosePreContext {
   __sysko_span?: SpanHandle;

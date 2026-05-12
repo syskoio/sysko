@@ -1,5 +1,5 @@
 {
-  "name": "@sysko/transport",
+  "name": "@syskoio/transport",
   "version": "0.0.1",
   "description": "Transporte WebSocket entre o core e o dashboard",
   "license": "MIT",
@@ -20,7 +20,7 @@
     "clean": "rimraf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
-    "@sysko/storage": "workspace:*",
+    "@syskoio/storage": "workspace:*",
     "ws": "^8.18.0"
   },
   "devDependencies": {

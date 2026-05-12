@@ -1,5 +1,5 @@
 {
-  "name": "@sysko/dashboard",
+  "name": "@syskoio/dashboard",
   "version": "0.0.1",
   "description": "Dashboard realtime do Sysko Observe (React + Vite + Tailwind)",
   "license": "MIT",

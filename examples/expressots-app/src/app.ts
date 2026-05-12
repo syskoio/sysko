@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import type { NextFunction, Request, Response } from "express";
-import { getCurrentContext, getActiveHandle } from "@sysko/core";
+import { getCurrentContext, getActiveHandle } from "@syskoio/core";
 import { AppExpress } from "@expressots/adapter-express";
 import { ContainerModule } from "@expressots/core";
 import { UserController } from "./controllers/users.controller.js";

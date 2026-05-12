@@ -1,4 +1,4 @@
-import { startSpan } from "@sysko/core";
+import { startSpan } from "@syskoio/core";
 
 export interface TypeORMQueryRunnerLike {
   query(sql: string, parameters?: unknown[]): Promise<unknown>;

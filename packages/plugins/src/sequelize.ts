@@ -1,4 +1,4 @@
-import { startSpan } from "@sysko/core";
+import { startSpan } from "@syskoio/core";
 
 // Sequelize supports both raw-string SQL and the { query, values } object form.
 type SequelizeQuery = string | { query: string; values?: unknown[] };

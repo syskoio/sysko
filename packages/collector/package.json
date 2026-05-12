@@ -1,5 +1,5 @@
 {
-  "name": "@sysko/collector",
+  "name": "@syskoio/collector",
   "version": "0.0.1",
   "description": "Standalone span collector and dashboard for Sysko Observe",
   "license": "MIT",
@@ -23,9 +23,9 @@
     "clean": "rimraf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
-    "@sysko/dashboard": "workspace:*",
-    "@sysko/storage": "workspace:*",
-    "@sysko/transport": "workspace:*"
+    "@syskoio/dashboard": "workspace:*",
+    "@syskoio/storage": "workspace:*",
+    "@syskoio/transport": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Span, SpanError, SpanStore } from "@sysko/storage";
+import type { Span, SpanError, SpanStore } from "@syskoio/storage";
 import { spanContext } from "./context.js";
 import { getActiveHandle } from "./span-factory.js";
 

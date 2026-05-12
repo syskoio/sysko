@@ -1,8 +1,8 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { SqliteStore } from "@sysko/storage";
-import { createTransport } from "@sysko/transport";
-import { dashboardAssetsPath } from "@sysko/dashboard";
+import { SqliteStore } from "@syskoio/storage";
+import { createTransport } from "@syskoio/transport";
+import { dashboardAssetsPath } from "@syskoio/dashboard";
 
 export interface CollectorOptions {
   port?: number;

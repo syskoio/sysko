@@ -10,7 +10,7 @@
 Sysko is a tracing library and realtime dashboard for Node.js. It aims to replace the OpenTelemetry + Grafana + Jaeger + Datadog stack when you're a startup, SaaS, microservice, or solo developer — no config, no external agent, no paid panel.
 
 ```ts
-import { init } from "@sysko/core";
+import { init } from "@syskoio/core";
 
 await init({ serviceName: "my-app" });
 
@@ -81,9 +81,9 @@ Add the following to your project's `package.json`:
 {
   "pnpm": {
     "overrides": {
-      "@sysko/storage":   "file:./vendor/sysko-storage-0.0.1.tgz",
-      "@sysko/transport": "file:./vendor/sysko-transport-0.0.1.tgz",
-      "@sysko/dashboard": "file:./vendor/sysko-dashboard-0.0.1.tgz"
+      "@syskoio/storage":   "file:./vendor/sysko-storage-0.0.1.tgz",
+      "@syskoio/transport": "file:./vendor/sysko-transport-0.0.1.tgz",
+      "@syskoio/dashboard": "file:./vendor/sysko-dashboard-0.0.1.tgz"
     }
   }
 }
@@ -98,7 +98,7 @@ pnpm add ./vendor/sysko-plugins-0.0.1.tgz   # optional, for route templates
 
 ```ts
 // at the top of your entry file
-import { init } from "@sysko/core";
+import { init } from "@syskoio/core";
 await init({ serviceName: "my-app" });
 ```
 
@@ -135,10 +135,10 @@ node /path/to/sysko/packages/cli/dist/index.js init --yes
 
 | Framework             | Auto-tracing | Route templates             |
 | --------------------- | ------------ | --------------------------- |
-| Express               | yes          | `@sysko/plugins/express`    |
-| Fastify               | yes          | `@sysko/plugins/fastify`    |
+| Express               | yes          | `@syskoio/plugins/express`    |
+| Fastify               | yes          | `@syskoio/plugins/fastify`    |
 | Any `http.Server`     | yes          | n/a                         |
-| Prisma (DB queries)   | n/a          | `@sysko/plugins/prisma`     |
+| Prisma (DB queries)   | n/a          | `@syskoio/plugins/prisma`     |
 
 NestJS and Next.js work for automatic capture (both use `http.Server` underneath), but don't have dedicated plugins for route templates yet.
 
@@ -178,7 +178,7 @@ sysko.onSpan((span) => {
 ### Custom spans
 
 ```ts
-import { withSpan } from "@sysko/core";
+import { withSpan } from "@syskoio/core";
 
 await withSpan({ kind: "internal", name: "expensive-job" }, async () => {
   // your work; span closes automatically (even on throw)
@@ -230,7 +230,7 @@ pnpm pack:all      # generates tarballs in dist-packs/ for external use
 To work on just the UI:
 
 ```bash
-pnpm --filter @sysko/dashboard dev
+pnpm --filter @syskoio/dashboard dev
 ```
 
 Vite runs on `:5173` and proxies WebSocket to `:9999`, so you also need an example running (e.g. `pnpm --filter example-express-app start`) to have a transport on `:9999`.
@@ -255,7 +255,7 @@ PRs and issues are welcome. A few quick tips:
 - Comment in code only when the *why* is non-obvious — well-named identifiers already say *what*
 - For dashboard visual changes, validate manually in the browser. Backend tests don't catch visual regressions
 - Strict TypeScript (`strict: true`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
-- Don't add dependencies to `@sysko/core` without a clear need — that's the package consumers install
+- Don't add dependencies to `@syskoio/core` without a clear need — that's the package consumers install
 - See the [ROADMAP](ROADMAP.md) for what's planned and the **anti-roadmap** for what we explicitly **won't** do
 
 Full guidelines in [CONTRIBUTING.md](CONTRIBUTING.md). By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).

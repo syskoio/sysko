@@ -1,4 +1,4 @@
-import { startSpan } from "@sysko/core";
+import { startSpan } from "@syskoio/core";
 
 const TRACKED_COMMANDS = new Set([
   "get", "set", "del", "exists", "expire", "ttl", "pttl", "persist",

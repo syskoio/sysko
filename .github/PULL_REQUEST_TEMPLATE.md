@@ -23,7 +23,7 @@ Delete sections that don't apply.
 - [ ] `pnpm build` passes
 - [ ] For UI changes: tested manually in the browser
 - [ ] For new instrumentation: added a route in the example apps that exercises it
-- [ ] No new dependencies added to `@sysko/core` (or, if added, explained below)
+- [ ] No new dependencies added to `@syskoio/core` (or, if added, explained below)
 
 ## Related issues
 

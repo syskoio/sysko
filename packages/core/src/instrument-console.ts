@@ -1,4 +1,4 @@
-import type { SpanLogLevel } from "@sysko/storage";
+import type { SpanLogLevel } from "@syskoio/storage";
 import { spanContext } from "./context.js";
 import { getActiveHandle } from "./span-factory.js";
 

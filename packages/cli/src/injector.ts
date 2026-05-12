@@ -6,16 +6,16 @@ export interface InjectionOptions {
   pkgName: string;
 }
 
-const SYSKO_MARKER = "@sysko/core";
+const SYSKO_MARKER = "@syskoio/core";
 
 function buildSnippet(opts: InjectionOptions): string {
   const lines: string[] = [];
-  lines.push(`import { init } from "@sysko/core";`);
+  lines.push(`import { init } from "@syskoio/core";`);
 
   if (opts.framework === "express") {
-    lines.push(`import { instrumentExpress } from "@sysko/plugins/express";`);
+    lines.push(`import { instrumentExpress } from "@syskoio/plugins/express";`);
   } else if (opts.framework === "fastify") {
-    lines.push(`import { instrumentFastify } from "@sysko/plugins/fastify";`);
+    lines.push(`import { instrumentFastify } from "@syskoio/plugins/fastify";`);
   }
 
   lines.push("");
@@ -38,7 +38,7 @@ export async function injectInto(
 ): Promise<{ wrote: boolean; reason?: string }> {
   const original = await readFile(filePath, "utf-8");
   if (original.includes(SYSKO_MARKER)) {
-    return { wrote: false, reason: "file already references @sysko/core" };
+    return { wrote: false, reason: "file already references @syskoio/core" };
   }
 
   const snippet = buildSnippet(opts);
@@ -67,9 +67,9 @@ export async function updatePackageJson(
   };
   pkg.dependencies = pkg.dependencies ?? {};
 
-  const wanted: string[] = ["@sysko/core"];
+  const wanted: string[] = ["@syskoio/core"];
   if (framework === "express" || framework === "fastify") {
-    wanted.push("@sysko/plugins");
+    wanted.push("@syskoio/plugins");
   }
 
   const added: string[] = [];

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import type { Request, Response } from "express";
-import { withSpan, type Sysko } from "@sysko/core";
+import { withSpan, type Sysko } from "@syskoio/core";
 import { controller, Get, request, response } from "@expressots/adapter-express";
 
 // sysko handle is set by main.ts after init() resolves; lazy-read on first use.

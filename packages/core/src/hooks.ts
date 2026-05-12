@@ -1,4 +1,4 @@
-import type { Span } from "@sysko/storage";
+import type { Span } from "@syskoio/storage";
 
 export type SpanHook = (span: Span) => Span | null | void;
 

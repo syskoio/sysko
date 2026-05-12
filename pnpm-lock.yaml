@@ -31,10 +31,10 @@ importers:
 
   examples/express-app:
     dependencies:
-      '@sysko/core':
+      '@syskoio/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@sysko/plugins':
+      '@syskoio/plugins':
         specifier: workspace:*
         version: link:../../packages/plugins
       express:
@@ -62,10 +62,10 @@ importers:
       '@expressots/shared':
         specifier: ^3.0.0
         version: 3.0.0(@types/node@22.19.18)(typescript@5.9.3)
-      '@sysko/core':
+      '@syskoio/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@sysko/plugins':
+      '@syskoio/plugins':
         specifier: workspace:*
         version: link:../../packages/plugins
       chalk:
@@ -90,10 +90,10 @@ importers:
 
   examples/fastify-app:
     dependencies:
-      '@sysko/core':
+      '@syskoio/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@sysko/plugins':
+      '@syskoio/plugins':
         specifier: workspace:*
         version: link:../../packages/plugins
       fastify:
@@ -118,13 +118,13 @@ importers:
 
   packages/collector:
     dependencies:
-      '@sysko/dashboard':
+      '@syskoio/dashboard':
         specifier: workspace:*
         version: link:../dashboard
-      '@sysko/storage':
+      '@syskoio/storage':
         specifier: workspace:*
         version: link:../storage
-      '@sysko/transport':
+      '@syskoio/transport':
         specifier: workspace:*
         version: link:../transport
     devDependencies:
@@ -137,13 +137,13 @@ importers:
 
   packages/core:
     dependencies:
-      '@sysko/dashboard':
+      '@syskoio/dashboard':
         specifier: workspace:*
         version: link:../dashboard
-      '@sysko/storage':
+      '@syskoio/storage':
         specifier: workspace:*
         version: link:../storage
-      '@sysko/transport':
+      '@syskoio/transport':
         specifier: workspace:*
         version: link:../transport
     devDependencies:
@@ -155,19 +155,6 @@ importers:
         version: 5.9.3
 
   packages/dashboard:
-    dependencies:
-      lucide-react:
-        specifier: ^0.469.0
-        version: 0.469.0(react@19.2.6)
-      react:
-        specifier: ^19.0.0
-        version: 19.2.6
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.2.6(react@19.2.6)
-      recharts:
-        specifier: ^2.15.0
-        version: 2.15.4(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.0.0
@@ -181,6 +168,18 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.3.4
         version: 4.7.0(vite@6.4.2(@types/node@22.19.18)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.21.0))
+      lucide-react:
+        specifier: ^0.469.0
+        version: 0.469.0(react@19.2.6)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.6
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.6(react@19.2.6)
+      recharts:
+        specifier: ^2.15.0
+        version: 2.15.4(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       rimraf:
         specifier: ^6.0.1
         version: 6.1.3
@@ -196,10 +195,10 @@ importers:
 
   packages/plugins:
     dependencies:
-      '@sysko/core':
+      '@syskoio/core':
         specifier: workspace:*
         version: link:../core
-      '@sysko/storage':
+      '@syskoio/storage':
         specifier: workspace:*
         version: link:../storage
     devDependencies:
@@ -228,7 +227,7 @@ importers:
 
   packages/transport:
     dependencies:
-      '@sysko/storage':
+      '@syskoio/storage':
         specifier: workspace:*
         version: link:../storage
       ws:

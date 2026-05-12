@@ -80,7 +80,7 @@ pnpm pack:all      # generates dist-packs/*.tgz for external testing
 To iterate on the UI specifically:
 
 ```bash
-pnpm --filter @sysko/dashboard dev
+pnpm --filter @syskoio/dashboard dev
 ```
 
 This boots Vite at `:5173` with hot reload. You still need an example running at `:3000` and the transport at `:9999` (any `pnpm --filter <example> start` provides both) — Vite proxies the WebSocket to `:9999`.
@@ -179,7 +179,7 @@ Sysko's auto-instrumentation runs on the hot path of other people's apps. Be min
 - Defensive validation at internal boundaries — trust internal callers
 - Backwards-compatibility shims when you can just change the code
 - Abstractions for hypothetical future requirements
-- Dependencies in `@sysko/core` unless absolutely necessary
+- Dependencies in `@syskoio/core` unless absolutely necessary
 
 ---
 

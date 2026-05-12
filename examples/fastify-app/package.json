@@ -8,8 +8,8 @@
     "test": "tsx src/test.ts"
   },
   "dependencies": {
-    "@sysko/core": "workspace:*",
-    "@sysko/plugins": "workspace:*",
+    "@syskoio/core": "workspace:*",
+    "@syskoio/plugins": "workspace:*",
     "fastify": "^5.2.0"
   },
   "devDependencies": {

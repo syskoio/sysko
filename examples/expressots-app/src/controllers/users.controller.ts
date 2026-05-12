@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import type { Response } from "express";
-import { withSpan } from "@sysko/core";
+import { withSpan } from "@syskoio/core";
 import { controller, Get, param, response } from "@expressots/adapter-express";
 
 @controller("/users")

@@ -1,6 +1,6 @@
 import { Server as HttpServer, type IncomingMessage, type ServerResponse } from "node:http";
-import type { SpanStore } from "@sysko/storage";
-import { INTERNAL_SERVER } from "@sysko/transport";
+import type { SpanStore } from "@syskoio/storage";
+import { INTERNAL_SERVER } from "@syskoio/transport";
 import { spanContext, type SpanContext } from "./context.js";
 import { setActiveStore, startSpanWithContext } from "./span-factory.js";
 

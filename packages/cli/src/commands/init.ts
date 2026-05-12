@@ -41,7 +41,7 @@ export async function runInit(opts: InitOptions): Promise<number> {
 
   if (!opts.yes) {
     console.log(`will do:`);
-    console.log(`  ${LIME}+${RESET} add @sysko/core${result.framework === "express" || result.framework === "fastify" ? " and @sysko/plugins" : ""} to dependencies`);
+    console.log(`  ${LIME}+${RESET} add @syskoio/core${result.framework === "express" || result.framework === "fastify" ? " and @syskoio/plugins" : ""} to dependencies`);
     console.log(`  ${LIME}+${RESET} inject \`await init()\` at the top of ${result.entryFile}`);
     console.log(`\n${DIM}re-run with --yes to apply${RESET}\n`);
     return 0;

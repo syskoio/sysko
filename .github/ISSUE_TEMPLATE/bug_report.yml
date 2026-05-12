@@ -11,7 +11,7 @@ body:
     id: sysko-version
     attributes:
       label: Sysko version
-      description: Run `pnpm list @sysko/core` in your project, or paste the commit SHA if running from source.
+      description: Run `pnpm list @syskoio/core` in your project, or paste the commit SHA if running from source.
       placeholder: "0.0.1 / commit 9c71e78"
     validations:
       required: true

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { withSpan } from "@sysko/core";
+import { withSpan } from "@syskoio/core";
 
 export function defineRoutes(app: FastifyInstance): void {
   app.get("/", async () => "hello sysko");

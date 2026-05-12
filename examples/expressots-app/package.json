@@ -14,7 +14,7 @@
     "chalk": "^5.3.0",
     "@syskoio/core": "workspace:*",
     "@syskoio/plugins": "workspace:*",
-    "express": "^4.21.2",
+    "express": "^5.2.1",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {

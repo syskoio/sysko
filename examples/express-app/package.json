@@ -10,7 +10,7 @@
   "dependencies": {
     "@syskoio/core": "workspace:*",
     "@syskoio/plugins": "workspace:*",
-    "express": "^4.21.2"
+    "express": "^5.2.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",

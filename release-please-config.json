@@ -18,6 +18,7 @@
     "packages/storage": { "component": "storage" },
     "packages/plugins": { "component": "plugins" },
     "packages/dashboard": { "component": "dashboard" },
-    "packages/cli": { "component": "cli" }
+    "packages/cli": { "component": "cli" },
+    "packages/collector": { "component": "collector" }
   }
 }

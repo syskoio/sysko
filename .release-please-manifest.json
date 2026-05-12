@@ -4,5 +4,6 @@
   "packages/storage": "0.0.1",
   "packages/plugins": "0.0.1",
   "packages/dashboard": "0.0.1",
-  "packages/cli": "0.0.1"
+  "packages/cli": "0.0.1",
+  "packages/collector": "0.0.1"
 }

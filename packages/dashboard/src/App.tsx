@@ -229,13 +229,21 @@ export function App(): React.ReactElement {
               </div>
             </>
           ) : view === "errors" ? (
-            <ErrorsTab spans={spans} onSelectTrace={onSelectTrace} />
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <ErrorsTab spans={spans} onSelectTrace={onSelectTrace} />
+            </div>
           ) : view === "alerts" ? (
-            <AlertsTab alerts={alerts} />
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <AlertsTab alerts={alerts} />
+            </div>
           ) : view === "system" ? (
-            <SystemTab samples={metrics} />
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <SystemTab samples={metrics} />
+            </div>
           ) : view === "distribution" ? (
-            <Histogram spans={spans} />
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <Histogram spans={spans} />
+            </div>
           ) : rootSpans.length === 0 ? (
             <EmptyState />
           ) : (

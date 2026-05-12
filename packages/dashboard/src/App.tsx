@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Sidebar, type SidebarView } from "./components/Sidebar";
 import { RoutesList } from "./components/RoutesList";
 import { RouteDetail } from "./components/RouteDetail";
+import { SettingsView } from "./components/SettingsView";
 import { SpanList } from "./components/SpanList";
 import { SpanDetail } from "./components/SpanDetail";
 import { EmptyState } from "./components/EmptyState";
@@ -244,6 +245,8 @@ export function App(): React.ReactElement {
             <div className="flex-1 min-w-0 overflow-hidden">
               <Histogram spans={spans} />
             </div>
+          ) : view === "settings" ? (
+            <SettingsView onClear={onClear} />
           ) : rootSpans.length === 0 ? (
             <EmptyState />
           ) : (

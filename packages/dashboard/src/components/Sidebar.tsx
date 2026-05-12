@@ -1,7 +1,7 @@
-import { Activity, Pause, Play, Trash2, BarChart3, ListTree, BarChartHorizontal, Cpu, Bell, AlertTriangle } from "lucide-react";
+import { Activity, Pause, Play, Trash2, BarChart3, ListTree, BarChartHorizontal, Cpu, Bell, AlertTriangle, Settings } from "lucide-react";
 import type { ConnState } from "../lib/types";
 
-export type SidebarView = "endpoints" | "spans" | "distribution" | "system" | "alerts" | "errors";
+export type SidebarView = "endpoints" | "spans" | "distribution" | "system" | "alerts" | "errors" | "settings";
 
 export interface SidebarProps {
   view: SidebarView;
@@ -90,6 +90,15 @@ export function Sidebar({
           onClick={() => onViewChange("errors")}
         />
       </nav>
+
+      <div className="border-t border-zinc-900 px-3 py-2 shrink-0">
+        <NavBtn
+          icon={<Settings className="h-3.5 w-3.5" />}
+          label="Settings"
+          active={view === "settings"}
+          onClick={() => onViewChange("settings")}
+        />
+      </div>
     </aside>
   );
 }

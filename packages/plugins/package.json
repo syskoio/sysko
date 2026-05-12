@@ -4,54 +4,65 @@
   "description": "Framework integrations for Sysko Observe — Express, Fastify, Prisma, Redis, BullMQ and more",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./prisma": {
       "types": "./dist/prisma.d.ts",
-      "import": "./dist/prisma.js"
+      "import": "./dist/prisma.js",
+      "require": "./dist/prisma.cjs"
     },
     "./express": {
       "types": "./dist/express.d.ts",
-      "import": "./dist/express.js"
+      "import": "./dist/express.js",
+      "require": "./dist/express.cjs"
     },
     "./fastify": {
       "types": "./dist/fastify.d.ts",
-      "import": "./dist/fastify.js"
+      "import": "./dist/fastify.js",
+      "require": "./dist/fastify.cjs"
     },
     "./redis": {
       "types": "./dist/redis.d.ts",
-      "import": "./dist/redis.js"
+      "import": "./dist/redis.js",
+      "require": "./dist/redis.cjs"
     },
     "./axios": {
       "types": "./dist/axios.d.ts",
-      "import": "./dist/axios.js"
+      "import": "./dist/axios.js",
+      "require": "./dist/axios.cjs"
     },
     "./bullmq": {
       "types": "./dist/bullmq.d.ts",
-      "import": "./dist/bullmq.js"
+      "import": "./dist/bullmq.js",
+      "require": "./dist/bullmq.cjs"
     },
     "./mongoose": {
       "types": "./dist/mongoose.d.ts",
-      "import": "./dist/mongoose.js"
+      "import": "./dist/mongoose.js",
+      "require": "./dist/mongoose.cjs"
     },
     "./sequelize": {
       "types": "./dist/sequelize.d.ts",
-      "import": "./dist/sequelize.js"
+      "import": "./dist/sequelize.js",
+      "require": "./dist/sequelize.cjs"
     },
     "./typeorm": {
       "types": "./dist/typeorm.d.ts",
-      "import": "./dist/typeorm.js"
+      "import": "./dist/typeorm.js",
+      "require": "./dist/typeorm.cjs"
     }
   },
   "files": ["dist", "src"],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "dev": "tsc -p tsconfig.json --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "clean": "rimraf dist .turbo *.tsbuildinfo"
   },

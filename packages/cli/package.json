@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/cli",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CLI do Sysko Observe — `sysko init` injeta o tracing no seu app",
   "license": "MIT",
   "type": "module",

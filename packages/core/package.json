@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Núcleo do Sysko Observe — tracing automático com AsyncLocalStorage + perf_hooks",
   "license": "MIT",
   "type": "module",

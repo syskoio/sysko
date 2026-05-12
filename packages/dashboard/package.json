@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/dashboard",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Dashboard realtime do Sysko Observe (React + Vite + Tailwind)",
   "license": "MIT",
   "type": "module",

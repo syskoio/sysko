@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/plugins",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Plugins de integração do Sysko Observe (express, fastify, http, etc)",
   "license": "MIT",
   "type": "module",

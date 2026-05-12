@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/transport",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Transporte WebSocket entre o core e o dashboard",
   "license": "MIT",
   "type": "module",

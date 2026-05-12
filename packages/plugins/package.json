@@ -1,7 +1,7 @@
 {
   "name": "@syskoio/plugins",
   "version": "0.1.0",
-  "description": "Plugins de integração do Sysko Observe (express, fastify, http, etc)",
+  "description": "Framework integrations for Sysko Observe — Express, Fastify, Prisma, Redis, BullMQ and more",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

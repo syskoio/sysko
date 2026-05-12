@@ -1,7 +1,7 @@
 {
   "name": "@syskoio/transport",
   "version": "0.1.0",
-  "description": "Transporte WebSocket entre o core e o dashboard",
+  "description": "HTTP and WebSocket transport server for Sysko Observe — serves the dashboard and streams spans in real time",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

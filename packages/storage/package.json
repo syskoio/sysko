@@ -1,7 +1,7 @@
 {
   "name": "@syskoio/storage",
   "version": "0.1.0",
-  "description": "Camada de persistência do Sysko Observe (in-memory inicialmente)",
+  "description": "Storage layer for Sysko Observe — in-memory RingBuffer and SQLite with retention policies",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

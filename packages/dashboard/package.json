@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/dashboard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Real-time observability dashboard for Sysko Observe (React + Vite + Tailwind)",
   "license": "MIT",
   "type": "module",
@@ -14,7 +14,11 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "dist-client", "src"],
+  "files": [
+    "dist",
+    "dist-client",
+    "src"
+  ],
   "scripts": {
     "build": "tsup && vite build",
     "dev": "vite",

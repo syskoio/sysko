@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/plugins",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Framework integrations for Sysko Observe — Express, Fastify, Prisma, Redis, BullMQ and more",
   "license": "MIT",
   "type": "module",
@@ -59,7 +59,10 @@
       "require": "./dist/typeorm.cjs"
     }
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

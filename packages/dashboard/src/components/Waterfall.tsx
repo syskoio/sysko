@@ -87,6 +87,18 @@ function fmtRelMs(base: number, ts: number): string {
   return `+${(delta / 1000).toFixed(2)}s`;
 }
 
+function niceInterval(totalMs: number): number {
+  const targets = [1, 2, 5, 10, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000, 10000];
+  const step = totalMs / 5;
+  return targets.find((t) => t >= step) ?? 10000;
+}
+
+function fmtRulerTick(ms: number): string {
+  if (ms === 0) return "0";
+  if (ms >= 1000) return `${(ms / 1000).toFixed(ms % 1000 === 0 ? 0 : 1)}s`;
+  return `${ms}ms`;
+}
+
 export function Waterfall({ trace, selectedId, onSelect }: WaterfallProps): React.ReactElement {
   const [openLogs, setOpenLogs] = useState<Set<string>>(new Set());
 
@@ -100,6 +112,10 @@ export function Waterfall({ trace, selectedId, onSelect }: WaterfallProps): Reac
   const traceEnd = Math.max(...trace.map((s) => s.startTime + s.duration));
   const totalDuration = Math.max(1, traceEnd - rootStart);
   const childCount = trace.length - roots.length;
+
+  const rulerInterval = niceInterval(totalDuration);
+  const rulerTicks: number[] = [];
+  for (let t = 0; t <= totalDuration * 1.05; t += rulerInterval) rulerTicks.push(t);
 
   function toggleLogs(id: string): void {
     setOpenLogs((prev) => {
@@ -119,6 +135,31 @@ export function Waterfall({ trace, selectedId, onSelect }: WaterfallProps): Reac
           {childCount > 0 && <span className="text-zinc-600"> · {childCount} child</span>}
           <span className="text-zinc-600"> · {fmtDuration(totalDuration)}</span>
         </span>
+      </div>
+
+      {/* time ruler */}
+      <div className="flex items-end gap-2 px-1.5 mb-1">
+        <div style={{ width: "45%" }} className="shrink-0" />
+        <div className="relative flex-1 h-5">
+          {rulerTicks.map((t, i) => {
+            const pct = Math.min(100, (t / totalDuration) * 100);
+            const xShift = i === 0 ? "0%" : i === rulerTicks.length - 1 ? "-100%" : "-50%";
+            return (
+              <div
+                key={t}
+                className="absolute bottom-0 flex flex-col items-center"
+                style={{ left: `${pct}%`, transform: `translateX(${xShift})` }}
+              >
+                <span className="text-[8.5px] font-mono text-zinc-600 tabular-nums whitespace-nowrap leading-none mb-0.5">
+                  {fmtRulerTick(t)}
+                </span>
+                <div className="w-px h-1.5 bg-zinc-800" />
+              </div>
+            );
+          })}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-zinc-800" />
+        </div>
+        <div className="w-14 shrink-0" />
       </div>
 
       <div className="space-y-0.5">

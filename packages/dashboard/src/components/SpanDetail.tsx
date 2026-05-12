@@ -4,7 +4,6 @@ import type { Span } from "../lib/types";
 import { fmtAbsoluteTime, fmtDuration, fmtRelativeTime, shortId } from "../lib/format";
 import { methodPill, statusColor } from "../lib/colors";
 import { Pill } from "./ui/Pill";
-import { Waterfall } from "./Waterfall";
 import { exportTrace } from "../lib/export";
 
 export interface SpanDetailProps {
@@ -108,12 +107,6 @@ export function SpanDetail({ span, trace, onClose, onSelectSpan, onCompare, isCo
       </div>
 
       <div className="flex-1 overflow-auto">
-        {trace.length > 0 && (
-          <Section title="trace">
-            <Waterfall trace={trace} selectedId={span.id} onSelect={onSelectSpan} />
-          </Section>
-        )}
-
         {isError && span.error && (
           <Section title="error">
             <KV label="name" value={span.error.name ?? "Error"} mono />

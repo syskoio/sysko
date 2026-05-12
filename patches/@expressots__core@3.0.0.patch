@@ -1,0 +1,16 @@
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -8,10 +8,10 @@
+   "exports": {
+     ".": {
+       "import": {
+-        "types": "./lib/esm/types/index.d.ts",
+-        "default": "./lib/esm/index.mjs"
++        "types": "./lib/cjs/types/index.d.ts",
++        "default": "./lib/cjs/index.js"
+       },
+       "require": {
+         "types": "./lib/cjs/types/index.d.ts",
+         "default": "./lib/cjs/index.js"
+       }

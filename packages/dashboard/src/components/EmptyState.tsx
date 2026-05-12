@@ -2,7 +2,7 @@ import { Activity } from "lucide-react";
 
 export function EmptyState(): React.ReactElement {
   return (
-    <div className="h-full flex items-center justify-center">
+    <div className="h-full flex items-center justify-center w-full">
       <div className="text-center max-w-sm px-6">
         <div className="relative inline-flex mb-5">
           <div className="absolute inset-0 bg-lime-300/20 blur-2xl rounded-full" />

@@ -9,10 +9,15 @@ import {
   ResponsiveContainer,
   type TooltipProps,
 } from "recharts";
-import type { MetricSample } from "../lib/types";
+import type { MetricSample, Span } from "../lib/types";
+import { fmtDuration, fmtRelativeTime } from "../lib/format";
+import { methodPill, statusColor } from "../lib/colors";
+import { Pill } from "./ui/Pill";
 
 interface Props {
   samples: MetricSample[];
+  rootSpans: Span[];
+  onSelectTrace: (traceId: string) => void;
 }
 
 type WindowSize = 60 | 360 | 720;
@@ -92,7 +97,6 @@ function MetricCard({
   warn,
   windowSize,
 }: MetricCardProps): React.ReactElement {
-  // show ~6 x-axis ticks regardless of window
   const tickInterval = Math.max(1, Math.floor(data.length / 6));
 
   return (
@@ -161,10 +165,10 @@ function MetricCard({
   );
 }
 
-export function SystemTab({ samples }: Props): React.ReactElement {
+export function SystemTab({ samples, rootSpans, onSelectTrace }: Props): React.ReactElement {
   const [windowSize, setWindowSize] = useState<WindowSize>(60);
 
-  if (samples.length === 0) {
+  if (samples.length === 0 && rootSpans.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm">
         collecting metrics…
@@ -183,82 +187,127 @@ export function SystemTab({ samples }: Props): React.ReactElement {
   const eldWarn = (latest?.eventLoopLag ?? 0) > 50;
   const cpuWarn = (latest?.cpuPercent ?? 0) > 80;
 
+  const recentSpans = rootSpans.slice(0, 10);
+
   return (
     <div className="flex-1 flex flex-col gap-0 min-h-0 overflow-y-auto">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-900">
-        <span className="text-[11px] text-zinc-500">
-          {slice.length} samples
-        </span>
-        <div className="flex items-center gap-1">
-          {WINDOWS.map((w) => (
-            <button
-              key={w.value}
-              type="button"
-              onClick={() => { setWindowSize(w.value); }}
-              className={
-                "px-2.5 py-0.5 text-[11px] font-medium rounded transition-colors " +
-                (windowSize === w.value
-                  ? "bg-zinc-700 text-zinc-100"
-                  : "text-zinc-500 hover:text-zinc-300")
-              }
-            >
-              {w.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      {samples.length > 0 && (
+        <>
+          <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-900">
+            <span className="text-[11px] text-zinc-500">
+              {slice.length} samples
+            </span>
+            <div className="flex items-center gap-1">
+              {WINDOWS.map((w) => (
+                <button
+                  key={w.value}
+                  type="button"
+                  onClick={() => { setWindowSize(w.value); }}
+                  className={
+                    "px-2.5 py-0.5 text-[11px] font-medium rounded transition-colors " +
+                    (windowSize === w.value
+                      ? "bg-zinc-700 text-zinc-100"
+                      : "text-zinc-500 hover:text-zinc-300")
+                  }
+                >
+                  {w.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      <div className="grid grid-cols-2 gap-4 p-5">
-        <MetricCard
-          title="Event Loop Lag"
-          current={(latest?.eventLoopLag ?? 0).toFixed(2)}
-          sub="ms"
-          data={eldData}
-          color="#a3e635"
-          gradientId="grad-eld"
-          unit="ms"
-          formatValue={(v) => v.toFixed(2)}
-          formatYAxis={(v) => `${v.toFixed(0)}`}
-          warn={eldWarn}
-          windowSize={windowSize}
-        />
-        <MetricCard
-          title="CPU Usage"
-          current={(latest?.cpuPercent ?? 0).toFixed(1)}
-          sub="%"
-          data={cpuData}
-          color="#60a5fa"
-          gradientId="grad-cpu"
-          unit="%"
-          formatValue={(v) => v.toFixed(1)}
-          formatYAxis={(v) => `${v.toFixed(0)}%`}
-          warn={cpuWarn}
-          windowSize={windowSize}
-        />
-        <MetricCard
-          title="Heap Used"
-          current={fmtBytes(latest?.heapUsed ?? 0)}
-          sub={`/ ${fmtBytes(latest?.heapTotal ?? 0)}`}
-          data={heapData}
-          color="#f472b6"
-          gradientId="grad-heap"
-          unit="MB"
-          formatValue={(v) => v.toFixed(1)}
-          formatYAxis={(v) => `${v.toFixed(0)}`}
-          windowSize={windowSize}
-        />
-        <MetricCard
-          title="GC Pause"
-          current={(latest?.gcDuration ?? 0).toFixed(1)}
-          sub="ms / interval"
-          data={gcData}
-          color="#fb923c"
-          gradientId="grad-gc"
-          unit="ms"
-          formatValue={(v) => v.toFixed(1)}
-          formatYAxis={(v) => `${v.toFixed(0)}`}
-          windowSize={windowSize}
-        />
+          <div className="grid grid-cols-2 gap-4 p-5">
+            <MetricCard
+              title="Event Loop Lag"
+              current={(latest?.eventLoopLag ?? 0).toFixed(2)}
+              sub="ms"
+              data={eldData}
+              color="#a3e635"
+              gradientId="grad-eld"
+              unit="ms"
+              formatValue={(v) => v.toFixed(2)}
+              formatYAxis={(v) => `${v.toFixed(0)}`}
+              warn={eldWarn}
+              windowSize={windowSize}
+            />
+            <MetricCard
+              title="CPU Usage"
+              current={(latest?.cpuPercent ?? 0).toFixed(1)}
+              sub="%"
+              data={cpuData}
+              color="#60a5fa"
+              gradientId="grad-cpu"
+              unit="%"
+              formatValue={(v) => v.toFixed(1)}
+              formatYAxis={(v) => `${v.toFixed(0)}%`}
+              warn={cpuWarn}
+              windowSize={windowSize}
+            />
+            <MetricCard
+              title="Heap Used"
+              current={fmtBytes(latest?.heapUsed ?? 0)}
+              sub={`/ ${fmtBytes(latest?.heapTotal ?? 0)}`}
+              data={heapData}
+              color="#f472b6"
+              gradientId="grad-heap"
+              unit="MB"
+              formatValue={(v) => v.toFixed(1)}
+              formatYAxis={(v) => `${v.toFixed(0)}`}
+              windowSize={windowSize}
+            />
+            <MetricCard
+              title="GC Pause"
+              current={(latest?.gcDuration ?? 0).toFixed(1)}
+              sub="ms / interval"
+              data={gcData}
+              color="#fb923c"
+              gradientId="grad-gc"
+              unit="ms"
+              formatValue={(v) => v.toFixed(1)}
+              formatYAxis={(v) => `${v.toFixed(0)}`}
+              windowSize={windowSize}
+            />
+          </div>
+        </>
+      )}
+
+      <div className="px-5 pb-5">
+        <h2 className="text-[10px] uppercase tracking-widest font-semibold text-zinc-500 mb-3">
+          Recent requests
+        </h2>
+        <div className="border border-zinc-800 rounded-lg overflow-hidden">
+          {recentSpans.length === 0 ? (
+            <p className="px-4 py-3 text-[12px] text-zinc-600">No requests yet</p>
+          ) : (
+            recentSpans.map((s) => {
+              const method = String(s.attributes["http.method"] ?? "?");
+              const path = String(s.attributes["http.route"] ?? s.attributes["http.path"] ?? s.name);
+              const code = s.attributes["http.status_code"];
+              const isErr = s.status === "error";
+              const mp = methodPill(method);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => { onSelectTrace(s.traceId); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left border-b border-zinc-800 last:border-b-0 hover:bg-zinc-800/50 transition-colors"
+                >
+                  <Pill bg={mp.bg} text={mp.text}>{method}</Pill>
+                  <span className="flex-1 font-mono text-[12px] text-zinc-200 truncate">{path}</span>
+                  <span className={"font-mono tabular-nums text-[11px] " + statusColor(code, isErr)}>
+                    {code !== undefined ? String(code) : "—"}
+                  </span>
+                  <span className="font-mono tabular-nums text-[11.5px] text-zinc-400 w-14 text-right">
+                    {fmtDuration(s.duration)}
+                  </span>
+                  <span className="font-mono text-[11px] text-zinc-600 w-14 text-right">
+                    {fmtRelativeTime(s.startTime)}
+                  </span>
+                </button>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

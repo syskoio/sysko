@@ -48,7 +48,7 @@ export function SpanDetail({ span, trace, onClose, onSelectSpan, onCompare, isCo
   const extraAttrs = Object.entries(span.attributes).filter(([k]) => !PROTECTED_KEYS.has(k));
 
   return (
-    <aside className="h-full flex flex-col border-l border-zinc-900 bg-zinc-950">
+    <aside className="h-full flex flex-col border-l border-zinc-900 bg-zinc-950 overflow-auto">
       <div className="flex items-start justify-between px-5 py-3 border-b border-zinc-900">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1.5">

@@ -1,7 +1,7 @@
 import { Activity, Pause, Play, Trash2, BarChart3, ListTree, BarChartHorizontal, Cpu, Bell, AlertTriangle, Settings } from "lucide-react";
 import type { ConnState } from "../lib/types";
 
-export type SidebarView = "endpoints" | "spans" | "distribution" | "system" | "alerts" | "errors" | "settings";
+export type SidebarView = "endpoints" | "spans" | "distribution" | "dashboard" | "alerts" | "errors" | "settings";
 
 export interface SidebarProps {
   view: SidebarView;
@@ -71,9 +71,9 @@ export function Sidebar({
         />
         <NavBtn
           icon={<Cpu className="h-3.5 w-3.5" />}
-          label="System"
-          active={view === "system"}
-          onClick={() => onViewChange("system")}
+          label="Dashboard"
+          active={view === "dashboard"}
+          onClick={() => onViewChange("dashboard")}
         />
         <NavBtn
           icon={<Bell className="h-3.5 w-3.5" />}
@@ -171,7 +171,7 @@ function NavBtn({
       onClick={onClick}
       className={
         "w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded text-[12.5px] transition-colors " +
-        (active ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/60")
+        (active ? "bg-lime-300/10 text-lime-300" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/60")
       }
     >
       <span className="flex items-center gap-2">{icon}{label}</span>

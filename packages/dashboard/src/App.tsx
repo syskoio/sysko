@@ -237,9 +237,9 @@ export function App(): React.ReactElement {
             <div className="flex-1 min-w-0 overflow-hidden">
               <AlertsTab alerts={alerts} />
             </div>
-          ) : view === "system" ? (
+          ) : view === "dashboard" ? (
             <div className="flex-1 min-w-0 overflow-hidden">
-              <SystemTab samples={metrics} />
+              <SystemTab samples={metrics} rootSpans={rootSpans} onSelectTrace={onSelectTrace} />
             </div>
           ) : view === "distribution" ? (
             <div className="flex-1 min-w-0 overflow-hidden">

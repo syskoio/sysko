@@ -26,11 +26,11 @@
     "pack:all": "turbo run build && rimraf dist-packs && pnpm -r --filter \"@syskoio/*\" exec pnpm pack --pack-destination ../../dist-packs"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
+    "@types/node": "^25.7.0",
     "rimraf": "^6.0.1",
     "tsup": "^8.0.0",
     "turbo": "^2.3.3",
-    "typescript": "^5.7.2"
+    "typescript": "^6.0.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": ["better-sqlite3", "esbuild"],

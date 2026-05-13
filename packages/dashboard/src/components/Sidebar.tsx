@@ -48,6 +48,12 @@ export function Sidebar({
 
       <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
         <NavBtn
+          icon={<Cpu className="h-3.5 w-3.5" />}
+          label="Dashboard"
+          active={view === "dashboard"}
+          onClick={() => onViewChange("dashboard")}
+        />
+        <NavBtn
           icon={<BarChart3 className="h-3.5 w-3.5" />}
           label="Endpoints"
           active={view === "endpoints"}
@@ -65,12 +71,6 @@ export function Sidebar({
           label="Distribution"
           active={view === "distribution"}
           onClick={() => onViewChange("distribution")}
-        />
-        <NavBtn
-          icon={<Cpu className="h-3.5 w-3.5" />}
-          label="Dashboard"
-          active={view === "dashboard"}
-          onClick={() => onViewChange("dashboard")}
         />
         <NavBtn
           icon={<Bell className="h-3.5 w-3.5" />}

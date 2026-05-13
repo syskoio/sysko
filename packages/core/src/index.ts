@@ -7,6 +7,7 @@ import { activateHttpInstrumentation } from "./instrument-http.js";
 import { activateOutboundInstrumentation } from "./instrument-outbound.js";
 import { activateErrorInstrumentation } from "./instrument-errors.js";
 import { setActiveStore, setSamplingRate, setRateLimit, getActiveHandle } from "./span-factory.js";
+import { startAdaptiveSampler, type AdaptiveSamplingOptions } from "./adaptive-sampler.js";
 import { SpanExporter, type ExportOptions } from "./span-exporter.js";
 import { spanContext } from "./context.js";
 import { addSpanHook, clearSpanHooks, type SpanHook } from "./hooks.js";
@@ -30,6 +31,7 @@ export type {
 export type { ExportOptions } from "./span-exporter.js";
 export type { MetricSample } from "./metrics.js";
 export type { AlertRule, AlertFired } from "./alert-engine.js";
+export type { AdaptiveSamplingOptions } from "./adaptive-sampler.js";
 export { getCurrentSpanId, getCurrentTraceId, getCurrentContext } from "./context.js";
 export {
   startSpan,
@@ -46,12 +48,15 @@ export interface DashboardOptions {
   host?: string;
   staticDir?: string;
   password?: string;
+  /** TLS credentials — enables HTTPS when provided. */
+  tls?: { cert: string | Buffer; key: string | Buffer };
 }
 
 export type StorageOptions =
   | "sqlite"
   | "memory"
-  | { path: string };
+  | { path: string }
+  | SpanStore;
 
 export interface SyskoOptions {
   serviceName?: string;
@@ -69,6 +74,10 @@ export interface SyskoOptions {
   alertCheckInterval?: number;
   /** Forward spans to a remote Sysko collector in addition to local storage. */
   export?: ExportOptions;
+  /** When true, the dashboard server itself is instrumented like any other HTTP server. */
+  selfObservation?: boolean;
+  /** Dynamically adjust the sampling rate to stay near a target throughput. */
+  adaptiveSampling?: AdaptiveSamplingOptions;
 }
 
 export interface Sysko {
@@ -86,8 +95,20 @@ const DEFAULT_HOST = "127.0.0.1";
 
 let active: Sysko | undefined;
 
+function isSpanStore(v: unknown): v is SpanStore {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    "push" in v &&
+    "list" in v &&
+    "subscribe" in v
+  );
+}
+
 function resolveStore(options: SyskoOptions): SpanStore {
   const storageOpt = options.storage ?? "sqlite";
+
+  if (isSpanStore(storageOpt)) return storageOpt;
 
   if (storageOpt === "memory") {
     return new RingBuffer(options.capacity);
@@ -125,9 +146,13 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
   const port = dashOpts?.port ?? DEFAULT_PORT;
   const host = dashOpts?.host ?? DEFAULT_HOST;
 
-  // Build the list of endpoints to exclude from outbound instrumentation:
-  // the dashboard server and, if configured, the remote collector.
-  const outboundIgnores = [{ host, port }];
+  // Build the list of endpoints to exclude from outbound instrumentation.
+  // When selfObservation is on, the dashboard server is NOT excluded so its
+  // traffic appears as regular spans.
+  const outboundIgnores: { host: string; port: number }[] = [];
+  if (!options.selfObservation) {
+    outboundIgnores.push({ host, port });
+  }
   if (options.export) {
     try {
       const exportUrl = new URL(options.export.url);
@@ -181,10 +206,17 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
       host,
       ...(dashOpts.password !== undefined ? { password: dashOpts.password } : {}),
       ...(alertEngine !== undefined ? { alerts: alertEngine } : {}),
+      ...(dashOpts.tls !== undefined ? { tls: dashOpts.tls } : {}),
+      ...(options.selfObservation ? { selfObservation: true } : {}),
     });
     const started = await transport.start();
     dashboardUrl = started.url;
     console.log(`[sysko] dashboard ready at ${dashboardUrl}`);
+  }
+
+  let stopAdaptiveSampler: (() => void) | undefined;
+  if (options.adaptiveSampling) {
+    stopAdaptiveSampler = startAdaptiveSampler(options.adaptiveSampling);
   }
 
   const sysko: Sysko = {
@@ -212,6 +244,7 @@ export async function init(options: SyskoOptions = {}): Promise<Sysko> {
       setActiveStore(null);
       setSamplingRate(1);
       setRateLimit(0);
+      stopAdaptiveSampler?.();
       metricsCollector.stop();
       alertEngine?.stop();
       await exporter?.stop();

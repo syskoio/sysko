@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+import { createServer as createHttpsServer } from "node:https";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize, resolve, sep } from "node:path";
 import { WebSocketServer, type WebSocket } from "ws";
@@ -26,6 +27,10 @@ export interface TransportOptions {
   alerts?: AlertsSource;
   /** Accept remote spans via POST /v1/spans (used by the collector). */
   ingest?: boolean;
+  /** TLS credentials — enables HTTPS when provided. */
+  tls?: { cert: string | Buffer; key: string | Buffer };
+  /** When true, the transport server is not excluded from HTTP instrumentation. */
+  selfObservation?: boolean;
 }
 
 export interface Transport {
@@ -145,6 +150,9 @@ export function createTransport(options: TransportOptions): Transport {
   const metrics = options.metrics;
   const alerts = options.alerts;
   const ingest = options.ingest ?? false;
+
+  const tls = options.tls;
+  const selfObservation = options.selfObservation ?? false;
 
   let httpServer: Server | undefined;
   let wss: WebSocketServer | undefined;
@@ -288,8 +296,12 @@ export function createTransport(options: TransportOptions): Transport {
 
   return {
     async start() {
-      const server = createServer(onRequest);
-      (server as unknown as Record<symbol, unknown>)[INTERNAL_SERVER] = true;
+      const server = tls
+        ? createHttpsServer({ cert: tls.cert, key: tls.key }, onRequest)
+        : createServer(onRequest);
+      if (!selfObservation) {
+        (server as unknown as Record<symbol, unknown>)[INTERNAL_SERVER] = true;
+      }
 
       const sockets = new WebSocketServer({ noServer: true });
       server.on("upgrade", (req, socket, head) => {
@@ -320,7 +332,7 @@ export function createTransport(options: TransportOptions): Transport {
         });
       });
 
-      return { url: `http://${host}:${port}`, port };
+      return { url: `${tls ? "https" : "http"}://${host}:${port}`, port };
     },
     async stop() {
       unsubscribe?.();

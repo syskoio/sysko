@@ -24,6 +24,7 @@ let samplingRate = 1;
 let rateLimit = Infinity;
 let rateBucket = Infinity;
 let rateLastRefill = 0;
+let spanCountSinceLastReset = 0;
 
 export function setActiveStore(store: SpanStore | null): void {
   activeStore = store;
@@ -31,6 +32,16 @@ export function setActiveStore(store: SpanStore | null): void {
 
 export function setSamplingRate(rate: number): void {
   samplingRate = Math.max(0, Math.min(1, rate));
+}
+
+export function getSamplingRate(): number {
+  return samplingRate;
+}
+
+export function getAndResetSpanCount(): number {
+  const c = spanCountSinceLastReset;
+  spanCountSinceLastReset = 0;
+  return c;
 }
 
 export function setRateLimit(spansPerSecond: number): void {
@@ -156,6 +167,7 @@ function createSpanHandle(opts: StartSpanOptions, parent: SpanContext | undefine
       const transformed = applyHooks(span);
       if (transformed && activeStore && acquireRateToken()) {
         activeStore.push(transformed);
+        spanCountSinceLastReset++;
       }
     },
   };

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/syskoio/sysko/compare/core-v0.2.0...core-v0.3.0) (2026-05-13)
+
+
+### Features
+
+* phase 7 — HTTPS, external storage adapter, self-observation, adaptive sampling ([fa3a21e](https://github.com/syskoio/sysko/commit/fa3a21ea919315054575e1df5d25c7764e9e64ff))
+
 ## [0.2.0](https://github.com/syskoio/sysko/compare/core-v0.1.0...core-v0.2.0) (2026-05-12)
 
 

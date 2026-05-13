@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/transport",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "HTTP and WebSocket transport server for Sysko Observe — serves the dashboard and streams spans in real time",
   "license": "MIT",
   "type": "module",

@@ -9,6 +9,10 @@ coverage/
 # distribution artifacts (tarballs from `pnpm pack:all`)
 dist-packs/
 
+# Next.js build output
+.next/
+next-env.d.ts
+
 *.log
 npm-debug.log*
 pnpm-debug.log*

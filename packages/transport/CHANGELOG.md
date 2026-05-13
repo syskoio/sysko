@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.2](https://github.com/syskoio/sysko/compare/transport-v0.3.1...transport-v0.3.2) (2026-05-13)
+
+
+### Bug Fixes
+
+* **cli:** include in coordinated release ([bf42db0](https://github.com/syskoio/sysko/commit/bf42db0c68369706e61cfdf9f1ce16bd90fe6e21))
+* **collector:** include in coordinated release ([70079a4](https://github.com/syskoio/sysko/commit/70079a436da402b4b52f02456feffa8c61a9fb5e))
+* **core:** include in coordinated release ([dac7d4b](https://github.com/syskoio/sysko/commit/dac7d4bfbbcbc2f2fdb31f4bbd42bfb47cc92fb2))
+* **dashboard:** include in coordinated release ([a61f366](https://github.com/syskoio/sysko/commit/a61f3666a23c28c2b10233e7da0e972089e538c4))
+* **plugins:** include in coordinated release ([693eced](https://github.com/syskoio/sysko/commit/693eced86d7357e1dd57476b33d3cca849e8b92a))
+* **storage:** include in coordinated release ([49ec864](https://github.com/syskoio/sysko/commit/49ec864e4c5005b3d631c8a9df56a45480579950))
+* **transport:** include in coordinated release ([d8dbe2f](https://github.com/syskoio/sysko/commit/d8dbe2ffbef6cbd8bc297a861f22a0d621399b63))
+
 ## [0.3.0](https://github.com/syskoio/sysko/compare/transport-v0.2.0...transport-v0.3.0) (2026-05-13)
 
 

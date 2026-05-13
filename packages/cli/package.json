@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/cli",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "CLI scaffolding tool — sysko init wires up tracing into your Node.js app in seconds",
   "license": "MIT",
   "type": "module",

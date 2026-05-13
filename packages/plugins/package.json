@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/plugins",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Framework integrations for Sysko Observe — Express, Fastify, Prisma, Redis, BullMQ and more",
   "license": "MIT",
   "type": "module",

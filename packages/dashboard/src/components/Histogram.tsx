@@ -106,7 +106,7 @@ export function Histogram({ spans }: { spans: Span[] }): React.ReactElement {
                   <div className="absolute inset-0 flex items-center px-2 pointer-events-none">
                     <span className="text-zinc-100 text-[10.5px] tabular-nums">
                       {b.count}
-                      <span className="text-zinc-500"> · {sharePct.toFixed(1)}%</span>
+                      <span className="text-zinc-300"> · {sharePct.toFixed(1)}%</span>
                     </span>
                   </div>
                 )}

@@ -72,4 +72,4 @@ await withSpan("invoice.generate", { orderId }, async () => {
 
 ## Docs
 
-[syskoio.dev/docs](https://syskoio.dev/docs)
+[docs.sysko.io](https://docs.sysko.io)

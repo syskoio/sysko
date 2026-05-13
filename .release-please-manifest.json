@@ -3,7 +3,7 @@
   "packages/transport": "0.3.0",
   "packages/storage": "0.2.0",
   "packages/plugins": "0.2.0",
-  "packages/dashboard": "0.2.0",
+  "packages/dashboard": "0.2.1",
   "packages/cli": "0.2.0",
   "packages/collector": "0.2.0"
 }

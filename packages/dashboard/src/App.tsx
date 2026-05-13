@@ -28,7 +28,7 @@ export function App(): React.ReactElement {
   const { spans, rootSpans, metrics, alerts, state, isNew, clear, paused, togglePause, getTrace } =
     useSpans(auth.password);
   const filters = useFilters();
-  const [view, setView] = useState<SidebarView>("spans");
+  const [view, setView] = useState<SidebarView>("dashboard");
   const [selectedRouteKey, setSelectedRouteKey] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [compareId, setCompareId] = useState<string | undefined>(undefined);

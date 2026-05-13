@@ -1,0 +1,20 @@
+{
+  "name": "example-benchmark",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/bench.ts",
+    "start:baseline": "tsx src/server.ts",
+    "start:instrumented": "tsx src/server-instrumented.ts"
+  },
+  "dependencies": {
+    "@syskoio/core": "workspace:*",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

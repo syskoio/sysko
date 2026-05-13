@@ -1,0 +1,23 @@
+{
+  "name": "example-nextjs-app",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "next dev -p 3008",
+    "build": "next build",
+    "test": "tsx src/test.ts"
+  },
+  "dependencies": {
+    "@syskoio/core": "workspace:*",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

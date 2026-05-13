@@ -1,9 +1,9 @@
 {
-  "packages/core": "0.3.1",
-  "packages/transport": "0.3.1",
-  "packages/storage": "0.3.1",
-  "packages/plugins": "0.3.1",
-  "packages/dashboard": "0.3.1",
-  "packages/cli": "0.3.1",
-  "packages/collector": "0.3.1"
+  "packages/core": "0.3.2",
+  "packages/transport": "0.3.2",
+  "packages/storage": "0.3.2",
+  "packages/plugins": "0.3.2",
+  "packages/dashboard": "0.3.2",
+  "packages/cli": "0.3.2",
+  "packages/collector": "0.3.2"
 }

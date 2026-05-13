@@ -1,6 +1,6 @@
 {
   "name": "@syskoio/collector",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Standalone span collector and dashboard for Sysko Observe",
   "license": "MIT",
   "type": "module",

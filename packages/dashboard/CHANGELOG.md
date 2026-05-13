@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/syskoio/sysko/compare/dashboard-v0.2.0...dashboard-v0.2.1) (2026-05-13)
+
+
+### Bug Fixes
+
+* **dashboard:** improve percentage label contrast in distribution histogram ([759547e](https://github.com/syskoio/sysko/commit/759547ec158e3e70817f6be2a14937fa75a66299))
+
 ## [0.2.0](https://github.com/syskoio/sysko/compare/dashboard-v0.1.0...dashboard-v0.2.0) (2026-05-12)
 
 
